@@ -174,7 +174,7 @@ gboolean __input (GIOChannel *channel)
 
 	g_io_channel_read_chars(channel, buf, MAX_STRING_LEN, &read, &error);
 	buf[read] = '\0';
-	g_print ("Read %d bytes: %s\n", read, buf);
+	g_print ("Read %"G_GSSIZE_FORMAT" bytes: %s\n", read, buf);
 	g_strstrip(buf);
 	__interpret (buf);
 	return TRUE;

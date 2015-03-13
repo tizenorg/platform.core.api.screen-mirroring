@@ -2,7 +2,7 @@ Name:       capi-media-screen-mirroring
 Summary:    A screen mirroring library in Tizen C API
 Version:    0.1.22
 Release:    0
-Group:      System/Libraries
+Group:      Multimedia/API
 License:    Apache License, Version 2.0
 Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  cmake
@@ -25,7 +25,7 @@ Requires(postun): /sbin/ldconfig
 
 %package devel
 Summary:  A Screen Mirroring library in Tizen C API (Development)
-Group:    Development/Libraries
+Group:    Development/Multimedia
 Requires: %{name} = %{version}-%{release}
 
 %description devel
@@ -49,8 +49,7 @@ export CFLAGS="$CFLAGS -DTIZEN_DEBUG_ENABLE"
 export CXXFLAGS="$CXXFLAGS -DTIZEN_DEBUG_ENABLE"
 export FFLAGS="$FFLAGS -DTIZEN_DEBUG_ENABLE"
 %endif
-cmake . -DCMAKE_INSTALL_PREFIX=/usr -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
-
+%cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
 
 make %{?jobs:-j%jobs}
 
