@@ -24,6 +24,8 @@
 
 #define MAX_MSG_LEN 128
 #define TIMEOUT_SEC 2
+#define CONNECTED_TO_SERVER 1
+#define NOT_CONNECTED_TO_SERVER 0
 
 static gboolean __scmirroring_src_callback_call(gpointer data)
 {
@@ -56,15 +58,13 @@ static gboolean __scmirroring_src_callback_call(gpointer data)
 	return FALSE;
 }
 
-int __scmirroring_src_send_cmd_to_server(scmirroring_src_s *scmirroring, char *cmd)
+static int __scmirroring_src_send_cmd_to_server(scmirroring_src_s *scmirroring, const char *cmd)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 	char *_cmd = NULL;
 
-	if (scmirroring == NULL) {
-		scmirroring_error("OUT_OF_MEMORY");
-		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
-	}
+	scmirroring_retvm_if(scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring is NULL");
+	scmirroring_retvm_if(cmd == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "cmd is NULL");
 
 	_cmd = g_strdup(cmd);
 
@@ -75,53 +75,54 @@ int __scmirroring_src_send_cmd_to_server(scmirroring_src_s *scmirroring, char *c
 		scmirroring_debug("Sent message [%s] successfully", _cmd);
 	}
 
-	g_free(_cmd);
+	SCMIRRORING_SAFE_FREE(_cmd);
+
 	return ret;
 }
 
-int __miracast_server_launch(scmirroring_src_s *scmirroring)
+static int __miracast_server_launch(scmirroring_src_s *scmirroring)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
+	GDBusProxy *proxy = NULL;
+	GDBusConnection *conn = NULL;
+	GError *error = NULL;
 
 #if !GLIB_CHECK_VERSION(2,35,0)
 	g_type_init();
 #endif
 
-	GError *error = NULL;
+	scmirroring_debug("-----------  socket connect failed it means server is not yet started ------------");
+	scmirroring_debug("going to start miracast server");
 
-	scmirroring_debug("-----------  socket connect failed it means server is not yet started ------------\n");
-	scmirroring_debug("going to start miracast server \n");
+	conn = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
+	if (error) {
+		scmirroring_error("Failed to get dbus connection: %s", error->message);
+		g_error_free(error);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
 
-    GDBusProxy *proxy = NULL;
-    GDBusConnection *conn = NULL;
+	proxy = g_dbus_proxy_new_sync(conn,
+									G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+									NULL,
+									"org.tizen.scmirroring.server",
+									"/org/tizen/scmirroring/server",
+									"org.tizen.scmirroring.server",
+									NULL,
+									&error);
+	if (error) {
+		scmirroring_error("g_dbus_proxy_new_sync failed : %s", error->message);
+		g_error_free(error);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
 
-    conn = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
-    if (error) {
-      scmirroring_error("Failed to get dbus connection: %s", error->message);
-      return -1;
-    }    
+	g_dbus_proxy_call_sync (proxy, "launch_method", NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+	if (error) {
+		scmirroring_error("g_dbus_proxy_call_sync failed : %s", error->message);
+		g_error_free(error);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
 
-    proxy = g_dbus_proxy_new_sync (conn,
-                                            G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
-                                            NULL,
-                                            "org.tizen.scmirroring.server",
-                                            "/org/tizen/scmirroring/server",
-                                            "org.tizen.scmirroring.server",
-                                            NULL,
-                                            &error);
-    if (error) {
-        scmirroring_error("g_dbus_proxy_new_sync failed : %s\n", error->message);
-        return -1;
-    }
-
-    g_dbus_proxy_call_sync (proxy, "launch_method", NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
-    if (error) {
-        scmirroring_error("g_dbus_proxy_call_sync failed : %s\n", error->message);
-        return -1;
-    }
-
-    scmirroring_debug("scmirroring_proxy_initialize trying for connect\n");
-
+	scmirroring_debug("scmirroring_proxy_initialize trying for connect");
 
 	return ret;
 }
@@ -140,7 +141,7 @@ int __miracast_server_launch(scmirroring_src_s *scmirroring)
  * - SET [sth]
 */
 
-int __scmirroring_src_get_error(gchar *str)
+static int __scmirroring_src_get_error(gchar *str)
 {
 	if (g_strrstr(str, "OK")) {
 		return SCMIRRORING_ERROR_NONE;
@@ -151,22 +152,28 @@ int __scmirroring_src_get_error(gchar *str)
 	return SCMIRRORING_ERROR_NONE;
 }
 
-int __scmirroring_src_get_status(gchar *str)
+static int __scmirroring_src_get_status(gchar *str)
 {
 	if (g_strrstr(str, "LISTENING")) {
 		return SCMIRRORING_STATE_CONNECTION_WAIT;
 	} else if (g_strrstr(str, "CONNECTED")) {
 		return SCMIRRORING_STATE_CONNECTED;
-	} else if (g_strrstr(str, "STOP")) {
+	} else if (g_strrstr(str, "SET")) {
+		return SCMIRRORING_STATE_READY;
+	} else if (g_strrstr(str, SCMIRRORING_STATE_CMD_PAUSE)) {
+		return SCMIRRORING_STATE_PAUSED;
+	} else if (g_strrstr(str, SCMIRRORING_STATE_CMD_RESUME)) {
+		return SCMIRRORING_STATE_PLAYING;
+	} else if (g_strrstr(str, SCMIRRORING_STATE_CMD_STOP)) {
 		return SCMIRRORING_STATE_TEARDOWN;
-	} else if (g_strrstr(str, "DESTROY")) {
+	} else if (g_strrstr(str, SCMIRRORING_STATE_CMD_DESTROY)) {
 		return SCMIRRORING_STATE_NULL;
 	}
 
 	return SCMIRRORING_STATE_NONE;
 }
 
-void __scmirroring_src_set_callback_info (scmirroring_src_s *scmirroring, int error_code, int state)
+static void __scmirroring_src_set_callback_info (scmirroring_src_s *scmirroring, int error_code, int state)
 {
 	scmirroring_state_cb_s *cb_info = scmirroring->scmirroring_state_cb;
 	if (cb_info) {
@@ -184,7 +191,7 @@ void __scmirroring_src_set_callback_info (scmirroring_src_s *scmirroring, int er
 	return;
 }
 
-void __scmirroring_src_interpret(scmirroring_src_s *scmirroring, char *buf)
+static void __scmirroring_src_interpret(scmirroring_src_s *scmirroring, char *buf)
 {
 	scmirroring_debug("Received : %s", buf);
 
@@ -231,34 +238,92 @@ gboolean __scmirroring_src_read_cb(GIOChannel *src, GIOCondition condition, gpoi
 	return TRUE;
 }
 
+static int __scmirroring_src_send_set_cm (scmirroring_src_h scmirroring)
+{
+	/* Set connection mode to miracast server */
+	char *cmd = NULL;
+	int ret = SCMIRRORING_ERROR_NONE;
+	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
+
+	cmd = g_strdup_printf("SET CM %d", _scmirroring->connect_mode);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	if(ret != SCMIRRORING_ERROR_NONE)
+	{
+		SCMIRRORING_SAFE_FREE(cmd);
+		scmirroring_error("Failed to be ready [%d]", ret);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+
+	SCMIRRORING_SAFE_FREE(cmd);
+
+	return ret;
+}
+
+static int __scmirroring_src_send_set_ip(scmirroring_src_h scmirroring)
+{
+	/* Set IP and Port to server */
+	char *cmd = NULL;
+	int ret = SCMIRRORING_ERROR_NONE;
+	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
+
+	cmd = g_strdup_printf("SET IP %s:%s", _scmirroring->ip, _scmirroring->port);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	if(ret != SCMIRRORING_ERROR_NONE)
+	{
+		SCMIRRORING_SAFE_FREE(cmd);
+		scmirroring_error("Failed to be ready [%d]", ret);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+
+	SCMIRRORING_SAFE_FREE(cmd);
+
+	return ret;
+}
+
+static int __scmirroring_src_send_set_reso (scmirroring_src_h scmirroring)
+{
+	/* Set resolution to miracast server */
+	char *cmd = NULL;
+	int ret = SCMIRRORING_ERROR_NONE;
+	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
+
+	cmd = g_strdup_printf("SET RESO %d", _scmirroring->resolution);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	if(ret != SCMIRRORING_ERROR_NONE)
+	{
+		SCMIRRORING_SAFE_FREE(cmd);
+		scmirroring_error("Failed to be ready [%d]", ret);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+
+	SCMIRRORING_SAFE_FREE(cmd);
+
+	return ret;
+}
+
 int scmirroring_src_create(scmirroring_src_h *scmirroring)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
+	scmirroring_src_s *_scmirroring = NULL;
+	int sock = -1;
+	GIOChannel *channel = NULL;
+	struct timeval tv_timeout = { TIMEOUT_SEC, 0 };
 
 	scmirroring_debug_fenter();
 
-	if(scmirroring == NULL)
-	{
-		scmirroring_error("INVALID_PARAMETER");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
-	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)calloc(1,sizeof(scmirroring_src_s));
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("OUT_OF_MEMORY");
-		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
-	}
+	_scmirroring = (scmirroring_src_s*)calloc(1,sizeof(scmirroring_src_s));
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 	_scmirroring->ip= NULL;
 	_scmirroring->port = NULL;
+	_scmirroring->connected = NOT_CONNECTED_TO_SERVER;
 	_scmirroring->use_hdcp = TRUE;
 	_scmirroring->resolution = 0;
 	_scmirroring->connect_mode = SCMIRRORING_CONNECTION_WIFI_DIRECT;
 
 	/*Create TCP Socket*/
-	int sock;
-	struct timeval tv_timeout = { TIMEOUT_SEC, 0 };
 
 	if ((sock = socket(PF_FILE, SOCK_STREAM, 0)) < 0) {
 		scmirroring_error("socket failed: %s", strerror(errno));
@@ -271,7 +336,6 @@ int scmirroring_src_create(scmirroring_src_h *scmirroring)
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
-	GIOChannel *channel = NULL;
 	channel = g_io_channel_unix_new(sock);
 	if (channel == NULL) {
 		scmirroring_error("g_io_channel_unix_new failed: %s", strerror(errno));
@@ -298,11 +362,7 @@ int scmirroring_src_set_connection_mode(scmirroring_src_h scmirroring, scmirrori
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
 	if((connect_mode < SCMIRRORING_CONNECTION_WIFI_DIRECT) ||(connect_mode > SCMIRRORING_CONNECTION_MAX))
 	{
@@ -311,6 +371,11 @@ int scmirroring_src_set_connection_mode(scmirroring_src_h scmirroring, scmirrori
 	}
 
 	_scmirroring->connect_mode = connect_mode;
+
+	if(_scmirroring->connected)
+	{
+		ret = __scmirroring_src_send_set_cm (_scmirroring);
+	}
 
 	scmirroring_debug_fleave();
 
@@ -325,22 +390,14 @@ int scmirroring_src_set_state_changed_cb(scmirroring_src_h scmirroring, scmirror
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(callback == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "callback is NULL");
 
-	if(callback != NULL)
-	{
-		_scmirroring->scmirroring_state_cb = (scmirroring_state_cb_s*)calloc(1, sizeof(scmirroring_state_cb_s));
-		if(!_scmirroring->scmirroring_state_cb) {
-			scmirroring_error("Error Set CB");
-			return SCMIRRORING_ERROR_OUT_OF_MEMORY;
-		}
-		_scmirroring->scmirroring_state_cb->user_data = user_data;
-		_scmirroring->scmirroring_state_cb->state_cb = callback;
-	}
+	_scmirroring->scmirroring_state_cb = (scmirroring_state_cb_s*)calloc(1, sizeof(scmirroring_state_cb_s));
+	scmirroring_retvm_if(_scmirroring->scmirroring_state_cb == NULL, SCMIRRORING_ERROR_OUT_OF_MEMORY, "Error Set CB");
+
+	_scmirroring->scmirroring_state_cb->user_data = user_data;
+	_scmirroring->scmirroring_state_cb->state_cb = callback;
 
 	scmirroring_debug_fleave();
 
@@ -355,23 +412,9 @@ int scmirroring_src_set_ip_and_port(scmirroring_src_h scmirroring, const char *i
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
-
-	if(!STRING_VALID(ip))
-	{
-		scmirroring_error("INVALID IP");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
-
-	if(!STRING_VALID(port))
-	{
-		scmirroring_error("INVALID PORT");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(!STRING_VALID(ip), SCMIRRORING_ERROR_INVALID_PARAMETER, "INVALID IP");
+	scmirroring_retvm_if(!STRING_VALID(port), SCMIRRORING_ERROR_INVALID_PARAMETER, "INVALID PORT");
 
 	_scmirroring->ip = strdup(ip);
 	_scmirroring->port = strdup(port);
@@ -382,7 +425,12 @@ int scmirroring_src_set_ip_and_port(scmirroring_src_h scmirroring, const char *i
 		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
 	}
 
-	scmirroring_debug("");
+	if(_scmirroring->connected)
+	{
+		ret = __scmirroring_src_send_set_ip (_scmirroring);
+	}
+
+	scmirroring_debug_fleave();
 
 	return ret;
 }
@@ -395,11 +443,7 @@ int scmirroring_src_set_resolution(scmirroring_src_h scmirroring, scmirroring_re
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
 	if((resolution < SCMIRRORING_RESOLUTION_1920x1080_P30) ||(resolution > SCMIRRORING_RESOLUTION_MAX))
 	{
@@ -409,6 +453,11 @@ int scmirroring_src_set_resolution(scmirroring_src_h scmirroring, scmirroring_re
 
 	_scmirroring->resolution = resolution;
 
+	if(_scmirroring->connected)
+	{
+		ret = __scmirroring_src_send_set_reso (_scmirroring);
+	}
+
 	scmirroring_debug_fleave();
 
 	return ret;
@@ -417,33 +466,22 @@ int scmirroring_src_set_resolution(scmirroring_src_h scmirroring, scmirroring_re
 int scmirroring_src_connect(scmirroring_src_h scmirroring)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
+	int retry = 0;
+	struct sockaddr_un serv_addr;
 
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
-
-	if((_scmirroring->ip == NULL) ||(_scmirroring->port == NULL))
-	{
-		scmirroring_error("INVALID IP and Port");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
 	/* Connecting to the miracast server */
-	int retry = 0;
-	struct sockaddr_un serv_addr;
-
 	memset(&serv_addr, 0, sizeof(struct sockaddr_un));
 	serv_addr.sun_family = AF_UNIX;
 	strcpy(serv_addr.sun_path, _scmirroring->sock_path);
 
 try:
-	scmirroring_debug("Trying to connect to the miracast server\n");
+	scmirroring_debug("Trying to connect to the miracast server");
 	if (connect(_scmirroring->sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
 		/* Once failed to connect, try to launch miracast server */
 		if (retry == 0) {
@@ -456,9 +494,9 @@ try:
 			usleep(10000);
 			goto try;
 		} else {
-			scmirroring_debug("Trying to connect failed\n");
+			scmirroring_debug("Trying to connect failed");
 			if (retry < 5) {
-				scmirroring_debug("Trying to connect again..\n");
+				scmirroring_debug("Trying to connect again..");
 				retry++;
 				usleep(10000);
 				goto try;
@@ -478,13 +516,22 @@ try:
 	source = g_io_create_watch(_scmirroring->channel, G_IO_IN | G_IO_HUP | G_IO_ERR);
 	int source_id = -1;
 
+	if((_scmirroring->ip != NULL) ||(_scmirroring->port != NULL))
+	{
+		ret = __scmirroring_src_send_set_ip (_scmirroring);
+		ret = __scmirroring_src_send_set_cm (_scmirroring);
+		ret = __scmirroring_src_send_set_reso (_scmirroring);
+	}
+
 	/* Set callback to be called when socket is readable */
 	g_source_set_callback(source, (GSourceFunc)__scmirroring_src_read_cb, _scmirroring, NULL);
 	source_id = g_source_attach(source, g_main_context_get_thread_default());
 
 	_scmirroring->source_id = source_id;
+	_scmirroring->connected = CONNECTED_TO_SERVER;
 
 	__scmirroring_src_set_callback_info (_scmirroring, SCMIRRORING_ERROR_NONE, SCMIRRORING_STATE_READY);
+
 	scmirroring_debug_fleave();
 
 	return ret;
@@ -498,9 +545,12 @@ int scmirroring_src_disconnect(scmirroring_src_h scmirroring)
 
 	scmirroring_debug_fenter();
 
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+
 	g_io_channel_shutdown (_scmirroring->channel, FALSE, NULL);
 	g_io_channel_unref(_scmirroring->channel);
 	close (_scmirroring->sock);
+	_scmirroring->connected = NOT_CONNECTED_TO_SERVER;
 
 	scmirroring_debug_fleave();
 
@@ -510,29 +560,15 @@ int scmirroring_src_disconnect(scmirroring_src_h scmirroring)
 int scmirroring_src_start(scmirroring_src_h scmirroring)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
-
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
-	/* Set IP and Port to server and to be ready for miracast server */
-	char *cmd = NULL;
-	cmd = g_strdup_printf("START %s:%s", _scmirroring->ip, _scmirroring->port);
-	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, SCMIRRORING_STATE_CMD_START);
 	if(ret != SCMIRRORING_ERROR_NONE)
-	{
-		g_free(cmd);
-		scmirroring_error("Failed to be ready [%d]", ret);
-		return SCMIRRORING_ERROR_INVALID_OPERATION;
-	}
-
-	g_free(cmd);
+		scmirroring_error("Failed to start [%d]", ret);
 
 	scmirroring_debug_fleave();
 
@@ -542,28 +578,15 @@ int scmirroring_src_start(scmirroring_src_h scmirroring)
 int scmirroring_src_pause(scmirroring_src_h scmirroring)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
-
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
-	char *cmd = NULL;
-	cmd = g_strdup_printf("PAUSE");
-	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, SCMIRRORING_STATE_CMD_PAUSE);
 	if(ret != SCMIRRORING_ERROR_NONE)
-	{
-		g_free(cmd);
-		scmirroring_error("Failed to be ready [%d]", ret);
-		return SCMIRRORING_ERROR_INVALID_OPERATION;
-	}
-
-	g_free(cmd);
+		scmirroring_error("Failed to pause [%d]", ret);
 
 	scmirroring_debug_fleave();
 
@@ -573,28 +596,15 @@ int scmirroring_src_pause(scmirroring_src_h scmirroring)
 int scmirroring_src_resume(scmirroring_src_h scmirroring)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
-
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
-	char *cmd = NULL;
-	cmd = g_strdup_printf("RESUME");
-	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, SCMIRRORING_STATE_CMD_RESUME);
 	if(ret != SCMIRRORING_ERROR_NONE)
-	{
-		g_free(cmd);
-		scmirroring_error("Failed to be ready [%d]", ret);
-		return SCMIRRORING_ERROR_INVALID_OPERATION;
-	}
-
-	g_free(cmd);
+		scmirroring_error("Failed to resume [%d]", ret);
 
 	scmirroring_debug_fleave();
 
@@ -604,28 +614,15 @@ int scmirroring_src_resume(scmirroring_src_h scmirroring)
 int scmirroring_src_stop(scmirroring_src_h scmirroring)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
-
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
-	char *cmd = NULL;
-	cmd = g_strdup_printf("STOP");
-	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, SCMIRRORING_STATE_CMD_STOP);
 	if(ret != SCMIRRORING_ERROR_NONE)
-	{
-		g_free(cmd);
-		scmirroring_error("Failed to be ready [%d]", ret);
-		return SCMIRRORING_ERROR_INVALID_OPERATION;
-	}
-
-	g_free(cmd);
+		scmirroring_error("Failed to be stop [%d]", ret);
 
 	scmirroring_debug_fleave();
 
@@ -635,27 +632,15 @@ int scmirroring_src_stop(scmirroring_src_h scmirroring)
 int scmirroring_src_destroy(scmirroring_src_h scmirroring)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
-
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s*)scmirroring;
 
 	scmirroring_debug_fenter();
 
-	if(_scmirroring == NULL)
-	{
-		scmirroring_error("INVALID Handle");
-		return SCMIRRORING_ERROR_INVALID_PARAMETER;
-	}
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
-	char *cmd = NULL;
-	cmd = g_strdup_printf("DESTROY");
-	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, SCMIRRORING_STATE_CMD_DESTROY);
 	if(ret != SCMIRRORING_ERROR_NONE)
-	{
-		g_free(cmd);
-		scmirroring_error("Failed to be ready [%d]", ret);
-		return SCMIRRORING_ERROR_INVALID_OPERATION;
-	}
-	g_free(cmd);
+		scmirroring_error("Failed to destroy [%d]", ret);
 
 	scmirroring_debug_fleave();
 

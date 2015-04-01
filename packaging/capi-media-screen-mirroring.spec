@@ -12,8 +12,8 @@ BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gstreamer-1.0)
 BuildRequires:  pkgconfig(gstreamer-plugins-base-1.0)
 BuildRequires:  pkgconfig(gstreamer-rtsp-server-1.0)
-BuildRequires:  pkgconfig(wifi-direct)
 BuildRequires:  pkgconfig(capi-network-wifi-direct)
+BuildRequires:  pkgconfig(wifi-direct)
 BuildRequires:  pkgconfig(mm-wfd)
 BuildRequires:  pkgconfig(iniparser)
 
@@ -75,7 +75,7 @@ cp -rf config/scmirroring_src.ini %{buildroot}/usr/etc/scmirroring_src.ini
 
 %files
 %manifest capi-media-screen-mirroring.manifest
-%{_libdir}/libcapi-media-screen-mirroring.so.*
+%{_libdir}/libcapi-media-screen-mirroring.so*
 %{_datadir}/dbus-1/services/org.tizen.scmirroring.server.service
 #License
 %{_datadir}/license/%{name}

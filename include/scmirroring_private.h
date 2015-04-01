@@ -66,12 +66,25 @@ extern "C" {
 			LOGE("NO-ERROR : <Leave>");     \
 		} while (0)
 
+#define scmirroring_retvm_if(expr, val, fmt, arg...) do { \
+		if(expr) { \
+			LOGE(""fmt"", ##arg);     \
+			return (val); \
+		} \
+	} while (0)
+
 #define scmirroring_sucure_info(fmt, arg...) do { \
 			SECURE_LOGI(""fmt"", ##arg);     \
 		} while (0)
 
 #define SCMIRRORING_SAFE_FREE(src)      { if(src) {free(src); src = NULL;}}
 #define STRING_VALID(str)		((str != NULL && strlen(str) > 0) ? TRUE : FALSE)
+
+#define SCMIRRORING_STATE_CMD_START			"START"
+#define SCMIRRORING_STATE_CMD_PAUSE			"PAUSE"
+#define SCMIRRORING_STATE_CMD_RESUME		"RESUME"
+#define SCMIRRORING_STATE_CMD_STOP			"STOP"
+#define SCMIRRORING_STATE_CMD_DESTROY		"DESTROY"
 
 typedef struct
 {
@@ -88,6 +101,7 @@ typedef struct
 	bool use_hdcp;
 	int resolution;
 	/* To communicate with miracast server */
+	int connected;
 	int sock;
 	int source_id;
 	GIOChannel *channel;

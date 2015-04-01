@@ -168,7 +168,7 @@ int scmirroring_src_set_resolution(scmirroring_src_h scmirroring_src, scmirrorin
 int scmirroring_src_connect(scmirroring_src_h scmirroring_src);
 
 /**
- * @brief Prepares screen mirroring as source, asynchronously.
+ * @brief Prepares screen mirroring as source.
  *
  * @since_tizen 2.4
  *

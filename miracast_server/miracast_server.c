@@ -145,6 +145,8 @@ struct _MiracastServerObject {
 	void *server;
 	void *client;
 	void *factory;
+	gint resolution;
+	gint connection_mode;
 };
 
 struct _MiracastServerObjectClass {
@@ -549,12 +551,19 @@ void __miracast_server_interpret(MiracastServerObject * server, char *buf)
 
 	scmirroring_debug("Received : %s", buf);
 
-	if (g_strrstr(buf, "START")) {
+	if (g_strrstr(buf, SCMIRRORING_STATE_CMD_START)) {
+		ret = __miracast_server_start(server);
+		if (ret == SCMIRRORING_ERROR_NONE) {
+			__miracast_server_send_resp(server, "OK:CONNECTED");
+		} else {
+			__miracast_server_send_resp(server, "FAIL:CONNECTED");
+		}
+	} else if (g_strrstr(buf, "SET IP")) {
 		gchar **addr_info;
 		gchar **IP_Port;
 
 		addr_info = g_strsplit(buf, " ", 0);
-		IP_Port = g_strsplit(addr_info[1], ":", 0);
+		IP_Port = g_strsplit(addr_info[2], ":", 0);
 
 		scmirroring_debug("IP: %s, Port: %s", IP_Port[0], IP_Port[1]);
 		server->ip = g_strdup(IP_Port[0]);
@@ -563,22 +572,45 @@ void __miracast_server_interpret(MiracastServerObject * server, char *buf)
 		g_strfreev(IP_Port);
 		g_strfreev(addr_info);
 
-		ret = __miracast_server_start(server);
-		if (ret == SCMIRRORING_ERROR_NONE) {
-			__miracast_server_send_resp(server, "OK:CONNECTED");
-		} else {
-			__miracast_server_send_resp(server, "FAIL:CONNECTED");
-		}
-	} else if (g_strrstr(buf, "PAUSE")) {
+		__miracast_server_send_resp(server, "OK:SET");
+	} else if (g_strrstr(buf, "SET CM")) {
+		gchar **conn_mode_info;
+		gint connection_mode = 0;
+
+		conn_mode_info = g_strsplit(buf, " ", 0);
+
+		connection_mode = atoi(conn_mode_info[2]);
+		scmirroring_debug("Connection mode %d", connection_mode);
+
+		server->connection_mode = connection_mode;
+
+		g_strfreev(conn_mode_info);
+
+		__miracast_server_send_resp(server, "OK:SET");
+	} else if (g_strrstr(buf, "SET RESO")) {
+		gchar **resolution_info;
+		gint resolution = 0;
+
+		resolution_info = g_strsplit(buf, " ", 0);
+
+		resolution = atoi(resolution_info[2]);
+		scmirroring_debug("Connection mode %d", resolution);
+
+		server->resolution = resolution;
+
+		g_strfreev(resolution_info);
+
+		__miracast_server_send_resp(server, "OK:SET");
+	} else if (g_strrstr(buf, SCMIRRORING_STATE_CMD_PAUSE)) {
 		gst_rtsp_wfd_server_trigger_request (GST_RTSP_SERVER(server->server), WFD_TRIGGER_PAUSE);
 		__miracast_server_send_resp(server, "OK:PAUSE");
-	} else if (g_strrstr(buf, "RESUME")) {
+	} else if (g_strrstr(buf, SCMIRRORING_STATE_CMD_RESUME)) {
 		gst_rtsp_wfd_server_trigger_request (GST_RTSP_SERVER(server->server), WFD_TRIGGER_PLAY);
 		__miracast_server_send_resp(server, "OK:RESUME");
-	} else if (g_strrstr(buf, "STOP")) {
+	} else if (g_strrstr(buf, SCMIRRORING_STATE_CMD_STOP)) {
 		gst_rtsp_wfd_server_trigger_request (GST_RTSP_SERVER(server->server), WFD_TRIGGER_TEARDOWN);
 		__miracast_server_send_resp(server, "OK:STOP");
-	} else if (g_strrstr(buf, "DESTROY")) {
+	} else if (g_strrstr(buf, SCMIRRORING_STATE_CMD_DESTROY)) {
 		__miracast_server_quit_program(server);
 	}
 }
