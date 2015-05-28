@@ -96,6 +96,14 @@ typedef struct
 
 typedef struct
 {
+	int error_code;
+	int sink_state;
+	void *user_data;
+	scmirroring_sink_state_cb state_cb;
+}scmirroring_sink_state_cb_s;
+
+typedef struct
+{
 	char *ip;
 	char *port;
 	bool use_hdcp;
@@ -116,7 +124,7 @@ typedef struct
 	char *ip;
 	char *port;
 	bool use_hdcp;
-	scmirroring_state_cb_s *scmirroring_state_cb;
+	scmirroring_sink_state_cb_s *scmirroring_sink_state_cb;
 } scmirroring_sink_s;
 
 #ifdef __cplusplus

@@ -36,6 +36,9 @@ extern "C" {
 /**
  * @brief Creates a new screen mirroring sink handle
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/internet
+ *
  * @remarks You must release @a scmirroring_sink using scmirroring_sink_destroy().
  *
  * @param[out] scmirroring_sink	A newly returned handle to the screen mirroring sink
@@ -46,6 +49,10 @@ extern "C" {
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
  * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
+ *
+ * @post The screen mirroring state will be SCMIRRORING_STATE_NULL
  *
  * @see	scmirroring_sink_destroy()
  */
@@ -66,12 +73,15 @@ int scmirroring_sink_create(scmirroring_sink_h *scmirroring_sink);
  * @retval      #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
+ * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  *
  * @see scmirroring_sink_create()
  */
-int scmirroring_sink_set_state_changed_cb(scmirroring_sink_h scmirroring_sink, scmirroring_state_cb callback, void *user_data);
+int scmirroring_sink_set_state_changed_cb(scmirroring_sink_h scmirroring_sink, scmirroring_sink_state_cb callback, void *user_data);
 
 /**
  * @brief Sets server IP and port
@@ -87,6 +97,9 @@ int scmirroring_sink_set_state_changed_cb(scmirroring_sink_h scmirroring_sink, s
  * @retval      #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
+ * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  *
@@ -110,6 +123,9 @@ int scmirroring_sink_set_ip_and_port(scmirroring_sink_h scmirroring_sink, const 
  * @retval      #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
+ * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  *
@@ -131,6 +147,9 @@ int scmirroring_sink_set_display(scmirroring_sink_h scmirroring_sink, scmirrorin
  * @retval      #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
+ * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  *
@@ -141,18 +160,24 @@ int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, scmirro
 /**
  * @brief Prepares the screen mirroring sink handle and allocates specific resources.
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink	The handle to the screen mirroring sink
- * @return      0 on success, otherwise a negative error value.
+ * @return @c 0 on success,
+ *         otherwise a negative error value
  * @retval      #SCMIRRORING_ERROR_NONE Successful
  * @retval      #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
  * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  * @pre Register user callback by calling scmirroring_sink_set_state_changed_cb().
- * @post The screen mirroring state will be SCMIRRORING_STATE_READY
+ * @pre The screen mirroring state should be SCMIRRORING_SINK_STATE_NULL
+ * @post The screen mirroring state will be SCMIRRORING_SINK_STATE_PREPARED
  *
  * @see scmirroring_sink_create()
  * @see scmirroring_sink_set_state_changed_cb()
@@ -163,6 +188,8 @@ int scmirroring_sink_prepare(scmirroring_sink_h scmirroring_sink);
  * @brief Creates connection and prepare for receiving data from SCMIRRORING source
  *
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in]	scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -173,11 +200,13 @@ int scmirroring_sink_prepare(scmirroring_sink_h scmirroring_sink);
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
  * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
  * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  * @pre Register user callback by calling scmirroring_sink_set_state_changed_cb().
  * @pre Call scmirroring_sink_prepare()
- * @post The screen mirroring state will be SCMIRRORING_STATE_CONNECTED
+ * @pre The screen mirroring state should be SCMIRRORING_SINK_STATE_PREPARED
+ * @post The screen mirroring state will be SCMIRRORING_SINK_STATE_CONNECTED
  *
  * @see scmirroring_sink_create()
  * @see scmirroring_sink_set_state_changed_cb()
@@ -189,6 +218,8 @@ int scmirroring_sink_connect(scmirroring_sink_h scmirroring_sink);
  * @brief Start receiving data from the SCMIRRORING source and display it (mirror)
  *
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in]	scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -199,11 +230,14 @@ int scmirroring_sink_connect(scmirroring_sink_h scmirroring_sink);
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
  * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
  * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  * @pre Register user callback by calling scmirroring_sink_set_state_changed_cb().
  * @pre Call scmirroring_sink_prepare()
- * @post The screen mirroring state will be SCMIRRORING_STATE_PLAYING
+ * @pre Call scmirroring_sink_connect()
+ * @pre The screen mirroring state should be SCMIRRORING_SINK_STATE_CONNECTED
+ * @post The screen mirroring state will be SCMIRRORING_SINK_STATE_PLAYING
  *
  * @see scmirroring_sink_create()
  * @see scmirroring_sink_set_state_changed_cb()
@@ -214,9 +248,12 @@ int scmirroring_sink_start(scmirroring_sink_h scmirroring_sink);
 
 /**
  * @brief Pauses receiving data from the SCMIRRORING source
- * @details This function pauses receiving data from the SCMIRRORING source, which means it sends RTSP PAUSE message to source.
+ * @details This function pauses receiving data from the SCMIRRORING source,
+ *	which means it sends RTSP PAUSE message to source.
  *
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in]	scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -226,9 +263,11 @@ int scmirroring_sink_start(scmirroring_sink_h scmirroring_sink);
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
  * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
- * @pre The screen mirroring state should be SCMIRRORING_STATE_PLAYING
- * @post The screen mirroring state will be SCMIRRORING_STATE_PAUSED
+ * @pre The screen mirroring state should be SCMIRRORING_SINK_STATE_PLAYING
+ * @post The screen mirroring state will be SCMIRRORING_SINK_STATE_PAUSED
  *
  * @see scmirroring_sink_create()
  * @see scmirroring_sink_set_state_changed_cb()
@@ -243,6 +282,8 @@ int scmirroring_sink_pause(scmirroring_sink_h scmirroring_sink);
  * @details This function pauses receiving data from the SCMIRRORING source, which means it sends RTSP PLAY message to source.
  *
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in]	scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -252,18 +293,22 @@ int scmirroring_sink_pause(scmirroring_sink_h scmirroring_sink);
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
  * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
- * @pre The screen mirroring state should be SCMIRRORING_STATE_PAUSED
- * @post The screen mirroring state will be SCMIRRORING_STATE_PLAYING
+ * @pre The screen mirroring state should be SCMIRRORING_SINK_STATE_PAUSED
+ * @post The screen mirroring state will be SCMIRRORING_SINK_STATE_PLAYING
  *
  * @see scmirroring_sink_pause()
  */
 int scmirroring_sink_resume(scmirroring_sink_h scmirroring_sink);
 
 /**
- * @brief Stops receiving data from the SCMIRRORING source
+ * @brief Disconnects and stops receiving data from the SCMIRRORING source
  *
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in]	scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -273,9 +318,12 @@ int scmirroring_sink_resume(scmirroring_sink_h scmirroring_sink);
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
  * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
- * @pre The screen mirroring state should be SCMIRRORING_STATE_PAUSED or SCMIRRORING_STATE_PLAYING
- * @post The screen mirroring state will be SCMIRRORING_STATE_TEARDOWN
+ * @pre The screen mirroring state should be SCMIRRORING_SINK_STATE_CONNECTED
+ * 	or SCMIRRORING_SINK_STATE_PLAYING or SCMIRRORING_SINK_STATE_PAUSED
+ * @post The screen mirroring state will be SCMIRRORING_SINK_STATE_DISCONNECTED
  *
  * @see scmirroring_sink_create()
  * @see scmirroring_sink_set_state_changed_cb()
@@ -283,13 +331,15 @@ int scmirroring_sink_resume(scmirroring_sink_h scmirroring_sink);
  * @see scmirroring_sink_connect()
  * @see scmirroring_sink_start()
  */
-int scmirroring_sink_stop(scmirroring_sink_h scmirroring_sink);
+int scmirroring_sink_disconnect(scmirroring_sink_h scmirroring_sink);
 
 /**
  * @brief Unprepares screen mirroring
  * @details This function unprepares screen mirroring, which closes specific resources.
  *
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in]	scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -299,6 +349,8 @@ int scmirroring_sink_stop(scmirroring_sink_h scmirroring_sink);
  * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
  * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  * @pre Register user callback by calling scmirroring_sink_set_state_changed_cb().
@@ -321,8 +373,10 @@ int scmirroring_sink_unprepare(scmirroring_sink_h scmirroring_sink);
  *         otherwise a negative error value
  * @retval      #SCMIRRORING_ERROR_NONE Successful
  * @retval      #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
+ * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  * @pre Register user callback by calling scmirroring_sink_set_state_changed_cb().
@@ -330,7 +384,7 @@ int scmirroring_sink_unprepare(scmirroring_sink_h scmirroring_sink);
  * @see scmirroring_sink_create()
  * @see scmirroring_sink_set_state_changed_cb()
  */
-int scmirroring_sink_unset_state_cb(scmirroring_sink_h scmirroring_sink);
+int scmirroring_sink_unset_state_changed_cb(scmirroring_sink_h scmirroring_sink);
 
 /**
  * @brief Destroys screen mirroring sink handle.
@@ -342,8 +396,10 @@ int scmirroring_sink_unset_state_cb(scmirroring_sink_h scmirroring_sink);
  *         otherwise a negative error value
  * @retval      #SCMIRRORING_ERROR_NONE Successful
  * @retval      #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval      #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval      #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
+ * @retval      #SCMIRRORING_ERROR_PERMISSION_DENIED Permission Denied
+ * @retval      #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
+ * @retval      #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  * @pre The screen mirroring state should be SCMIRRORING_STATE_NULL

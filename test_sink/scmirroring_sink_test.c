@@ -31,6 +31,7 @@ GMainLoop *g_loop;
 static int g_peer_cnt = 0;
 static char g_peer_ip[32];
 static char g_peer_port[32];
+#define DEFAULT_SCREEN_MIRRORING_PORT 2022
 #endif
 
 gboolean __scmirroring_sink_start(gpointer data);
@@ -43,26 +44,26 @@ static gboolean __start_p2p_connection(gpointer data);
 static gboolean __disconnect_p2p_connection(void);
 #endif
 
-static void scmirroring_state_callback(scmirroring_error_e error_code, scmirroring_state_e state, void *user_data)
+static void scmirroring_sink_state_callback(scmirroring_error_e error_code, scmirroring_sink_state_e state, void *user_data)
 {
 	g_print("Received Callback error code[%d]", error_code);
 
-	if(state == SCMIRRORING_STATE_NULL)
-		g_print(" st ate[%d] SCMIRRORING_STATE_NULL", state);
-	else if(state ==SCMIRRORING_STATE_READY)
-		g_print(" state[%d] SCMIRRORING_STATE_READY", state);
-	else if(state == SCMIRRORING_STATE_CONNECTION_WAIT)
-		g_print(" state[%d] SCMIRRORING_STATE_CONNECTION_WAIT", state);
-	else if(state == SCMIRRORING_STATE_CONNECTED)
-		g_print(" state[%d] SCMIRRORING_STATE_CONNECTED", state);
-	else if(state == SCMIRRORING_STATE_PLAYING)
-		g_print(" state[%d] SCMIRRORING_STATE_PLAYING", state);
-	else if(state == SCMIRRORING_STATE_PAUSED)
-		g_print(" state[%d] SCMIRRORING_STATE_PAUSED", state);
-	else if(state == SCMIRRORING_STATE_TEARDOWN)
-		g_print(" state[%d] SCMIRRORING_STATE_TEARDOWN", state);
-	else if(state == SCMIRRORING_STATE_NONE)
-		g_print(" state[%d] SCMIRRORING_STATE_NONE", state);
+	if(state == SCMIRRORING_SINK_STATE_NONE)
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_NONE", state);
+	else if(state == SCMIRRORING_SINK_STATE_NULL)
+		g_print(" st ate[%d] (state == SCMIRRORING_SINK_STATE_NULL)", state);
+	else if(state ==SCMIRRORING_SINK_STATE_PREPARED)
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_PREPARED", state);
+	else if(state == SCMIRRORING_SINK_STATE_CONNECTED)
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_CONNECTED", state);
+		if(scmirroring_sink_start(g_scmirroring)!= SCMIRRORING_ERROR_NONE)
+			g_print("scmirroring_sink_start fail");
+	else if(state == SCMIRRORING_SINK_STATE_PLAYING)
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_PLAYING", state);
+	else if(state == SCMIRRORING_SINK_STATE_PAUSED)
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_PAUSED", state);
+	else if(state == SCMIRRORING_SINK_STATE_DISCONNECTED)
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_DISCONNECTED", state);
 	else
 		g_print(" state[%d] Invalid State", state);
 
@@ -90,8 +91,8 @@ static void __displaymenu(void)
 	g_print("a : a ip port (ex. a 192.168.49.1 2022)\n");
 	g_print("s : start  \n");
 #endif
-	g_print("T : sTop\n");
-	g_print("D : Destroy\n");
+	g_print("D : Disconnect\n");
+	g_print("T : desTroy\n");
 	g_print("q : quit\n");
 	g_print("-----------------------------------------------------------------------------------------\n");
 }
@@ -106,8 +107,20 @@ gboolean __timeout_menu_display(void* data)
 #ifdef TEST_WITH_WIFI_DIRECT
 bool _connected_peer_cb(wifi_direct_connected_peer_info_s *peer, void *user_data)
 {
+	int peer_port = 0;
+	if (wifi_direct_get_peer_display_port(peer->mac_address, &peer_port) != WIFI_DIRECT_ERROR_NONE)
+	{
+		g_print ("Can not get port info\n Use default (2022)\n");
+		peer_port = DEFAULT_SCREEN_MIRRORING_PORT;
+	}
+	if (peer_port == 0)
+	{
+		g_print ("Can not get port info\n Use default (2022)\n");
+		peer_port = DEFAULT_SCREEN_MIRRORING_PORT;
+	}
+
 	g_print("[_connected_peer_cb] Connected to IP [%s]\n", peer->ip_address);
-	g_print("[_connected_peer_cb] Connected to Port [%d]\n", peer->scmirroring_ctrl_port);
+	g_print("[_connected_peer_cb] Connected to Port [%d]\n", peer_port);
 	g_print("[_connected_peer_cb] Connected device_name [%s]\n", peer->device_name);
 	g_print("[_connected_peer_cb] Connected to mac_address [%s]\n", peer->mac_address);
 	g_print("[_connected_peer_cb] Connected to interface_address [%s]\n", peer->interface_address);
@@ -116,7 +129,7 @@ bool _connected_peer_cb(wifi_direct_connected_peer_info_s *peer, void *user_data
 	memset(g_peer_port, 0x00, sizeof(g_peer_port));
 
 	snprintf(g_peer_ip, sizeof(g_peer_port), "%s", peer->ip_address);
-	snprintf(g_peer_port, sizeof(g_peer_port), "%d", peer->scmirroring_ctrl_port);
+	snprintf(g_peer_port, sizeof(g_peer_port), "%d", peer_port);
 
 	g_timeout_add(SINKTEST_EXECUTE_DELAY, __scmirroring_sink_start, NULL);
 
@@ -235,16 +248,12 @@ static void __interpret (char *cmd)
 	int ret = SCMIRRORING_ERROR_NONE;
   gchar **value;
 	value = g_strsplit(cmd," ",0);
-#if 0
-	gchar **value;
-	value = g_strsplit(cmd," ",0);
-#endif
-	if(strncmp(cmd, "T", 1) == 0)
+	if(strncmp(cmd, "D", 1) == 0)
 	{
-		g_print ("Stop\n");
-		ret = scmirroring_sink_stop(g_scmirroring);
+		g_print ("Disconnect\n");
+		ret = scmirroring_sink_disconnect(g_scmirroring);
 	}
-	else if(strncmp(cmd, "D", 1) == 0)
+	else if(strncmp(cmd, "T", 1) == 0)
 	{
 		g_print ("Destroy\n");
 		ret = scmirroring_sink_unprepare(g_scmirroring);
@@ -381,7 +390,7 @@ static gboolean __start_p2p_connection(gpointer data)
 	}
 
 	/*Enable Screen Mirroring*/
-	ret = wifi_direct_display_init();
+	ret = wifi_direct_init_display();
 	if(ret != WIFI_DIRECT_ERROR_NONE)
 	{
 		g_print("Error : wifi_direct_display_init failed : %d\n", ret);
@@ -389,14 +398,14 @@ static gboolean __start_p2p_connection(gpointer data)
 	}
 
 	/*Enable Wifi Direct - You can set this as true if you want to see it from wifi-direct list*/
-	ret = wifi_direct_display_set_wifi_direct(false);
+	ret = wifi_direct_set_display_availability(TRUE);
 	if(ret != WIFI_DIRECT_ERROR_NONE)
 	{
 		g_print("Error : wifi_direct_display_init failed : %d\n", ret);
 		goto error;
 	}
 
-	ret = wifi_direct_display_set_device(WIFI_DISPLAY_TYPE_PRIMARY_SINK, 77, 0);
+	ret = wifi_direct_set_display(WIFI_DISPLAY_TYPE_SINK, 2022, 0);
 	if(ret != WIFI_DIRECT_ERROR_NONE)
 	{
 		g_print("Error : wifi_direct_display_set_device failed : %d\n", ret);
@@ -545,7 +554,7 @@ gboolean __scmirroring_sink_start(gpointer data)
 	}
 #endif
 
-	ret = scmirroring_sink_set_state_changed_cb(g_scmirroring, scmirroring_state_callback, NULL);
+	ret = scmirroring_sink_set_state_changed_cb(g_scmirroring, scmirroring_sink_state_callback, NULL);
 	if(ret != SCMIRRORING_ERROR_NONE)
 	{
 		g_print("scmirroring_sink_set_state_changed_cb fail [%d]", ret);
@@ -570,14 +579,6 @@ gboolean __scmirroring_sink_start(gpointer data)
 		return FALSE;
 	}
 #endif
-
-	ret = scmirroring_sink_start(g_scmirroring);
-	if(ret != SCMIRRORING_ERROR_NONE)
-	{
-		g_print("scmirroring_sink_start fail [%d]", ret);
-		return FALSE;
-	}
-
 	return FALSE;
 }
 

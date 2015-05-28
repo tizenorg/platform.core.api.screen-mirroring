@@ -54,28 +54,45 @@ typedef enum
 	SCMIRRORING_ERROR_NONE					= TIZEN_ERROR_NONE,					/**< Successful */
 	SCMIRRORING_ERROR_INVALID_PARAMETER	= TIZEN_ERROR_INVALID_PARAMETER,		/**< Invalid parameter */
 	SCMIRRORING_ERROR_OUT_OF_MEMORY		= TIZEN_ERROR_OUT_OF_MEMORY,			/**< Out of memory */
-	SCMIRRORING_ERROR_INVALID_OPERATION		= TIZEN_ERROR_INVALID_OPERATION,		/**< Invalid Operation */
+	SCMIRRORING_ERROR_INVALID_OPERATION	= TIZEN_ERROR_INVALID_OPERATION,		/**< Invalid Operation */
 	SCMIRRORING_ERROR_CONNECTION_TIME_OUT	= TIZEN_ERROR_CONNECTION_TIME_OUT,  /**< Connection timeout */
-	SCMIRRORING_ERROR_PERMISSION_DENIED		= TIZEN_ERROR_PERMISSION_DENIED,    /**< Permission denied */
-	SCMIRRORING_ERROR_NOT_SUPPORTED			= TIZEN_ERROR_NOT_SUPPORTED,        /**< Not supported */
+	SCMIRRORING_ERROR_PERMISSION_DENIED	= TIZEN_ERROR_PERMISSION_DENIED,    /**< Permission denied */
+	SCMIRRORING_ERROR_NOT_SUPPORTED		= TIZEN_ERROR_NOT_SUPPORTED,        /**< Not supported */
+	SCMIRRORING_ERROR_UNKNOWN				= TIZEN_ERROR_UNKNOWN,        /**< Unknown error */
 } scmirroring_error_e;
 
 /**
- * @brief Enumeration for screen mirroring state.
+ * @brief Enumeration for screen mirroring source state.
  * @since_tizen 2.4
  */
 typedef enum
 {
 	SCMIRRORING_STATE_NULL = 0,			/**< Screen mirroring is created, but not realized yet */
-	SCMIRRORING_STATE_READY,			/**< Screen mirroring is ready to play media */
+	SCMIRRORING_STATE_READY,				/**< Screen mirroring is ready to play media */
 	SCMIRRORING_STATE_CONNECTION_WAIT,	/**< Screen mirroring is waiting for connection */
 	SCMIRRORING_STATE_CONNECTED,		/**< Screen mirroring is connected */
 	SCMIRRORING_STATE_PLAYING,			/**< Screen mirroring is now playing media */
-	SCMIRRORING_STATE_PAUSED,           /**< Screen mirroring is paused while playing media */
+	SCMIRRORING_STATE_PAUSED,          		 /**< Screen mirroring is paused while playing media */
 	SCMIRRORING_STATE_TEARDOWN,			/**< Teardown Screen mirroring */
 	SCMIRRORING_STATE_NONE,				/**< Screen mirroring is not created yet */
 	SCMIRRORING_STATE_MAX				/* Number of screen mirroring states */
 } scmirroring_state_e;
+
+/**
+ * @brief Enumeration for screen mirroring sink state.
+ * @since_tizen 2.4
+ */
+typedef enum
+{
+	SCMIRRORING_SINK_STATE_NONE = 0,		/**< Screen mirroring is not created yet */
+	SCMIRRORING_SINK_STATE_NULL,			/**< Screen mirroring is created, but not prepared yet */
+	SCMIRRORING_SINK_STATE_PREPARED,	/**< Screen mirroring is prepared to play media */
+	SCMIRRORING_SINK_STATE_CONNECTED,	/**< Screen mirroring is connected */
+	SCMIRRORING_SINK_STATE_PLAYING,		/**< Screen mirroring is now playing media */
+	SCMIRRORING_SINK_STATE_PAUSED,           /**< Screen mirroring is paused while playing media */
+	SCMIRRORING_SINK_STATE_DISCONNECTED,			/**< Screen mirroring is dieconnected */
+	SCMIRRORING_SINK_STATE_MAX			/* Number of screen mirroring states */
+} scmirroring_sink_state_e;
 
 /**
  * @brief Enumeration for screen mirroring resolution.
@@ -129,6 +146,22 @@ typedef enum
  * @see scmirroring_src_create()
  */
 typedef void (*scmirroring_state_cb)(scmirroring_error_e error, scmirroring_state_e state, void *user_data);
+
+/**
+ * @brief Called when each status is changed
+ * @since_tizen 2.4
+ *
+ * @details This callback is called for state and error of screen mirroring sink
+ *
+ * @param[in] error     The error code
+ * @param[in] state     The screen mirroring sink state
+ * @param[in] user_data The user data passed from the scmirroring_sink_set_state_cb() function
+ *
+ * @pre scmirroring_sink_create()
+ *
+ * @see scmirroring_sink_create()
+ */
+typedef void (*scmirroring_sink_state_cb)(scmirroring_error_e error, scmirroring_sink_state_e state, void *user_data);
 
 #ifdef __cplusplus
 }

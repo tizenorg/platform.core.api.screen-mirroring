@@ -1,6 +1,6 @@
 Name:       capi-media-screen-mirroring
 Summary:    A screen mirroring library in Tizen C API
-Version:    0.1.22
+Version:    0.1.23
 Release:    0
 Group:      Multimedia/API
 License:    Apache License, Version 2.0
