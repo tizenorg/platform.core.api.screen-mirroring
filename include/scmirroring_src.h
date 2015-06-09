@@ -29,7 +29,7 @@ extern "C" {
  */
 
 /**
- * @addtogroup CAPI_MEDIA_SCREEN_MIRRORING_MODULE
+ * @addtogroup CAPI_MEDIA_SCREEN_MIRRORING_SRC_MODULE
  * @{
  */
 
@@ -377,7 +377,7 @@ int scmirroring_src_disconnect(scmirroring_src_h scmirroring_src);
  * @see scmirroring_src_create()
  * @see scmirroring_src_set_state_changed_cb()
  */
-int scmirroring_src_unset_state_cb(scmirroring_src_h scmirroring_src);
+int scmirroring_src_unset_state_changed_cb(scmirroring_src_h scmirroring_src);
 
 /**
  * @brief Destroys server and screen mirroring source handle.

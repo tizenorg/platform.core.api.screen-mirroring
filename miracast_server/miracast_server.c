@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <sys/un.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <gio/gio.h>
 
 #include <gst/rtsp-server/rtsp-server-wfd.h>
@@ -37,9 +38,18 @@
 #define MAX_MSG_LEN 128
 #define MEDIA_IPC_PATH "/tmp/.miracast_ipc_rtspserver"
 
+#define PROC_DBUS_OBJECT "/org/tizen/scmirroring/server"
+#define PROC_DBUS_INTERFACE "org.tizen.scmirroring.server"
+#define PROC_DBUS_STATUS_CHANGE_SIGNAL "miracast_wfd_source_status_changed"
+
+#define MIRACAST_WFD_SOURCE_ON 1
+#define MIRACAST_WFD_SOURCE_OFF 0
+
 GMainLoop *g_mainloop = NULL;
 GObject *g_server_object = NULL;
+static gint g_server_status = MIRACAST_WFD_SOURCE_OFF;
 
+static int __miracast_server_emit_status_signal(int status);
 static const GDBusMethodInfo scmirroring_server_method_info_method =
 {
 	-1,
@@ -53,7 +63,7 @@ static const GDBusMethodInfo * const scmirroring_server_method_info_pointers[] =
 static const GDBusInterfaceInfo scmirroring_server_interface_info =
 {
 	-1,
-	"org.tizen.scmirroring.server",
+	PROC_DBUS_INTERFACE,
 	(GDBusMethodInfo **) &scmirroring_server_method_info_pointers,
 	(GDBusSignalInfo **) NULL,
 	(GDBusPropertyInfo **) NULL,
@@ -65,8 +75,11 @@ static GDBusNodeInfo *introspection_data = NULL;
 /* Introspection data for the service we are exporting */
 static const gchar introspection_xml[] =
   "<node>"
-  "  <interface name='org.tizen.scmirroring.server'>"
+  "  <interface name='"PROC_DBUS_INTERFACE"'>"
   "    <method name='launch_method'>"
+  "    </method>"
+  "    <method name='get_miracast_wfd_source_status'>"
+  "      <arg type='i' name='status' direction='out'/>"
   "    </method>"
   "  </interface>"
   "</node>";
@@ -82,10 +95,18 @@ handle_method_call (GDBusConnection       *connection,
                     GDBusMethodInvocation *invocation,
                     gpointer               user_data)
 {
+	scmirroring_debug("handle_method_call is called\n");
+
+	if(method_name != NULL)
+		scmirroring_debug("method_name is %s\n", method_name);
+
 	if (g_strcmp0 (method_name, "launch_method") == 0)
 	{
-		scmirroring_debug("handle_method_call is called\n");
 		g_dbus_method_invocation_return_value (invocation, NULL);
+	}
+	else if(g_strcmp0 (method_name, "get_miracast_wfd_source_status") == 0)
+	{
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(i)", g_server_status));
 	}
 }
 
@@ -107,7 +128,7 @@ on_bus_acquired (GDBusConnection *connection,
 
 	scmirroring_debug ("on_bus_acquired called\n");
 	registration_id = g_dbus_connection_register_object (connection,
-                                                       "/org/tizen/scmirroring/server",
+                                                       PROC_DBUS_OBJECT,
                                                        introspection_data->interfaces[0],
                                                        &interface_vtable,
                                                        NULL,
@@ -170,6 +191,7 @@ static void miracast_server_object_init(MiracastServerObject * obj)
 	obj->server = NULL;
 	obj->client = NULL;
 	obj->factory = NULL;
+	obj->resolution = -1;
 }
 
 static void miracast_server_object_class_init(MiracastServerObjectClass * klass)
@@ -195,8 +217,9 @@ int __miracast_server_send_resp(MiracastServerObject *server, char *cmd)
 	}
 
 	_cmd = g_strdup(cmd);
+	_cmd[strlen(_cmd)] = '\0';
 
-	if (write(client_sock, _cmd, strlen(_cmd)) != strlen(_cmd)) {
+	if (write(client_sock, _cmd, strlen(_cmd) + 1) != strlen(_cmd) + 1) {
 		scmirroring_error("sendto failed [%s]", strerror(errno));
 		ret = SCMIRRORING_ERROR_INVALID_OPERATION;
 	} else {
@@ -213,10 +236,17 @@ static void __miracast_server_quit_program(MiracastServerObject * server)
 
 	void *pool;
 	int i;
+	int ret = 0;
 
 	if (server->server == NULL) {
 		scmirroring_error ("server is already NULL");
 		goto done;
+	}
+
+	ret = __miracast_server_emit_status_signal(MIRACAST_WFD_SOURCE_OFF);
+	if(ret != SCMIRRORING_ERROR_NONE )
+	{
+		scmirroring_error("Failed to emit miracast server off signal");
 	}
 
 	pool = (void*)gst_rtsp_server_get_session_pool (server->server);
@@ -237,6 +267,22 @@ done:
 static void __miracast_server_signal_handler(int signo)
 {
 	scmirroring_error("__miracast_server_signal_handler call quit_program() %d", signo);
+	int ret = 0;
+
+	switch(signo)
+	{
+		case SIGINT:
+		case SIGQUIT:
+		case SIGTERM:
+			ret = __miracast_server_emit_status_signal(MIRACAST_WFD_SOURCE_OFF);
+			if(ret != SCMIRRORING_ERROR_NONE )
+			{
+				scmirroring_error("Failed to emit miracast server off signal");
+			}
+			break;
+		default:
+			break;
+	}
 	exit(1);
 }
 
@@ -307,7 +353,7 @@ static bool __miracast_server_setup()
 	object = g_object_new (MIRACAST_SERVER_TYPE_OBJECT, NULL);
 
 	g_bus_own_name (G_BUS_TYPE_SYSTEM,
-                           "org.tizen.scmirroring.server",
+                           PROC_DBUS_INTERFACE,
                            G_BUS_NAME_OWNER_FLAGS_NONE,
                            on_bus_acquired,
                            on_name_acquired,
@@ -365,6 +411,12 @@ static gboolean __miracast_server_ready_channel(int *sockfd)
 		close(sock);
 		return FALSE;
 	}
+
+	/*change permission of sock file*/
+	if (chmod(MEDIA_IPC_PATH, 0770) < 0)
+		scmirroring_error ("chmod failed [%s]", strerror(errno));
+	if (chown(MEDIA_IPC_PATH, 200, 5000) < 0)
+		scmirroring_error ("chown failed [%s]", strerror(errno));
 
 	scmirroring_debug("Listening...");
 	*sockfd = sock;
@@ -465,14 +517,58 @@ ERROR:
 
 #define TEST_MOUNT_POINT  "/wfd1.0/streamid=0"
 
+static void
+__client_closed (GstRTSPClient * client)
+{
+	if (client == NULL) return;
+
+	scmirroring_debug ("client %p: connection closed", client);
+
+	return;
+}
+
+static void
+__new_session (GstRTSPClient * client, GstRTSPSession *session)
+{
+	if (client == NULL) return;
+
+	scmirroring_debug ("New session(%p) is made for client %p", session, client);
+
+	return;
+}
+
+static void
+__teardown_req (GstRTSPClient * client, GstRTSPContext *ctx)
+{
+	if (client == NULL) return;
+
+	scmirroring_debug ("Got TEARDOWN request for client %p", client);
+
+	return;
+}
+
 static void 
 __miracast_server_client_connected_cb (GstRTSPServer * server,
     GstRTSPClient * client, gpointer user_data)
 {
 	MiracastServerObject *server_obj = (MiracastServerObject *)user_data;
+	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_debug("There is a client, connected");
 	server_obj->client = (void *)client;
+
+	ret = __miracast_server_emit_status_signal(MIRACAST_WFD_SOURCE_ON);
+	if(ret != SCMIRRORING_ERROR_NONE )
+	{
+		scmirroring_error("Failed to emit miracast server on signal");
+	}
+
+	g_signal_connect(G_OBJECT(client), "teardown-request", G_CALLBACK(__teardown_req), NULL);
+	g_signal_connect(G_OBJECT(client), "closed", G_CALLBACK(__client_closed), NULL);
+	g_signal_connect(G_OBJECT(client), "new-session", G_CALLBACK(__new_session), NULL);
+
+	/* Sending connected response to client */
+	__miracast_server_send_resp(server_obj, "OK:CONNECTED");
 }
 
 int __miracast_server_start(MiracastServerObject * server_obj)
@@ -516,14 +612,37 @@ int __miracast_server_start(MiracastServerObject * server_obj)
 			scmirroring_src_ini_get_structure()->mtu_size
 			);
 
-	gst_rtsp_wfd_server_set_supported_reso(server,
+
+	if (server_obj->resolution == SCMIRRORING_RESOLUTION_1920x1080_P30) {
+		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
+		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_CEA_1920x1080P30);
+	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_1280x720_P30) {
+		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
+		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_CEA_1280x720P30);
+	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_960x540_P30) {
+		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_HH_RESOLUTION);
+		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_HH_960x540P30);
+	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_864x480_P30) {
+		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_HH_RESOLUTION);
+		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_HH_864x480P30);
+	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_720x480_P60) {
+		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
+		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_CEA_720x480P60);
+	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_640x480_P60) {
+		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
+		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_CEA_640x480P60);
+	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_640x360_P30) {
+		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_HH_RESOLUTION);
+		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_HH_640x360P30);
+	} else {
+		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
+		gst_rtsp_wfd_server_set_supported_reso(server,
 			scmirroring_src_ini_get_structure()->video_reso_supported);
+	}
 
 	gst_rtsp_media_factory_wfd_set_dump_ts (factory,
 			scmirroring_src_ini_get_structure()->dump_ts);
 
-	gst_rtsp_media_factory_set_launch (GST_RTSP_MEDIA_FACTORY(factory),
-			"( " VIDEO_PIPELINE " )");
 	g_object_ref (factory);
 	gst_rtsp_mount_points_add_factory (mounts, TEST_MOUNT_POINT, GST_RTSP_MEDIA_FACTORY(factory));
 	g_object_unref (mounts);
@@ -554,9 +673,9 @@ void __miracast_server_interpret(MiracastServerObject * server, char *buf)
 	if (g_strrstr(buf, SCMIRRORING_STATE_CMD_START)) {
 		ret = __miracast_server_start(server);
 		if (ret == SCMIRRORING_ERROR_NONE) {
-			__miracast_server_send_resp(server, "OK:CONNECTED");
+			__miracast_server_send_resp(server, "OK:LISTENING");
 		} else {
-			__miracast_server_send_resp(server, "FAIL:CONNECTED");
+			__miracast_server_send_resp(server, "FAIL:LISTENING");
 		}
 	} else if (g_strrstr(buf, "SET IP")) {
 		gchar **addr_info;
@@ -594,7 +713,7 @@ void __miracast_server_interpret(MiracastServerObject * server, char *buf)
 		resolution_info = g_strsplit(buf, " ", 0);
 
 		resolution = atoi(resolution_info[2]);
-		scmirroring_debug("Connection mode %d", resolution);
+		scmirroring_debug("Resolution %d", resolution);
 
 		server->resolution = resolution;
 
@@ -649,10 +768,27 @@ gboolean __miracast_server_client_read_cb(GIOChannel *src,
 		if (read == 0) {
 			scmirroring_error("Read 0 bytes");
 			return FALSE;
+		} else {
+			scmirroring_debug("Read %d bytes", read);
 		}
-		buf[read] = '\0';
-		g_strstrip(buf);
-		__miracast_server_interpret (server, buf);
+
+		int i = 0;
+		int idx = 0;
+
+		/* Handling multiple commands like "CMD1\0CMD2\0CMD3\0" */
+		for (i = 0; i < read; i++) {
+			gchar *str = NULL;
+			if (buf[i] == '\0') {
+				str = buf + idx;
+				idx = i + 1;
+			} else {
+				continue;
+			}
+			scmirroring_debug("Handling %s", str);
+			__miracast_server_interpret (server, str);
+			if (idx >= read) break;
+		}
+
 	} else if (condition & G_IO_ERR) {
 		scmirroring_error("got G_IO_ERR");
 		return FALSE;
@@ -698,6 +834,7 @@ gboolean __miracast_server_read_cb(GIOChannel *src,
 	/* To avoid blocking in g_io_channel_read_chars */
 	g_io_channel_set_encoding(channel, NULL, NULL);
 	g_io_channel_set_buffered(channel, FALSE);
+	g_io_channel_set_flags (channel, G_IO_FLAG_NONBLOCK, NULL);
 
 	server->client_channel = channel;
 
@@ -706,6 +843,58 @@ gboolean __miracast_server_read_cb(GIOChannel *src,
 	g_source_attach(source, g_main_context_get_thread_default());
 
 	return TRUE;
+}
+
+
+static int __miracast_server_emit_status_signal(int status)
+{
+	GError *err = NULL;
+	GDBusConnection *conn = NULL;
+	gboolean ret;
+
+	if (status != MIRACAST_WFD_SOURCE_ON && status != MIRACAST_WFD_SOURCE_OFF) {
+		scmirroring_error ("invalid arguments [%d]", status);
+		return -1;
+	}
+
+	if (g_server_status == status) {
+		scmirroring_debug ("The server status is not changed, status [%d] ", status);
+		return 0;
+	}
+
+	conn = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &err);
+	if (!conn && err) {
+		scmirroring_error("g_bus_get_sync() error (%s) ", err->message);
+		g_error_free (err);
+		return -1;
+	}
+
+	ret = g_dbus_connection_emit_signal (conn,
+		NULL, PROC_DBUS_OBJECT, PROC_DBUS_INTERFACE, PROC_DBUS_STATUS_CHANGE_SIGNAL,
+		g_variant_new ("(i)", status), &err);
+	if (!ret && err) {
+		scmirroring_error("g_dbus_connection_emit_signal() error (%s) ", err->message);
+		goto error;
+	}
+
+	ret = g_dbus_connection_flush_sync(conn, NULL, &err);
+	if (!ret && err) {
+		scmirroring_error("g_dbus_connection_flush_sync() error (%s) ", err->message);
+		goto error;
+	}
+
+	g_object_unref(conn);
+	scmirroring_debug ("sending miracast server status [%s] success",
+		(status == MIRACAST_WFD_SOURCE_ON) ? "On" : "Off");
+
+	g_server_status = status;
+
+	return 0;
+
+error:
+	g_error_free (err);
+	g_object_unref(conn);
+	return -1;
 }
 
 int main(int argc, char *argv[])
@@ -752,4 +941,3 @@ int main(int argc, char *argv[])
 	scmirroring_debug("MIRACAST SERVER EXIT \n");
 	exit(0);
 }
-

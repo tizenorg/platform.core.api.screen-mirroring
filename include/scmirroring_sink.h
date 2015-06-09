@@ -29,7 +29,7 @@ extern "C" {
  */
 
 /**
- * @addtogroup CAPI_MEDIA_SCREEN_MIRRORING_MODULE
+ * @addtogroup CAPI_MEDIA_SCREEN_MIRRORING_SINK_MODULE
  * @{
  */
 

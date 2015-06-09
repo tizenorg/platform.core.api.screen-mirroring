@@ -63,7 +63,7 @@ static void __displaymenu(void)
 	g_print("=====================================================================\n");
 	g_print("a : a ip port (ex. a 192.168.49.1 2022)\n");
 	g_print("b : set sink device mac address (ex. b f8:d0:bd:7f:e9:7c)\n");
-	g_print("c : set resopution (ex. c 0 (0 : 1920x1080_P30, 1 : 1280x720_P30, 2 : 960x540_P30, 3: 640x360_P30)\n");
+	g_print("c : set resolution (ex. c 0 (0 : 1920x1080_P30, 1 : 1280x720_P30, 2 : 960x540_P30, 3: 640x360_P30)\n");
 	g_print("f : set connection mode (ex. f 0 (0 : wifi_direct, 1 : Other)\n");
 	g_print("C : Connect\n");
 	g_print("I : dIsconnect\n");
@@ -83,6 +83,21 @@ gboolean __timeout_menu_display(void* data)
 	return FALSE;
 }
 
+static int __wifi_direct_device_connect()
+{
+	if (strlen(g_sink_mac_addr) > 17 || strlen(g_sink_mac_addr) <= 0) {
+		g_print("\nWrong Mac_address");
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+
+	int err=  wifi_direct_connect(g_sink_mac_addr);
+	if (err != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Failed to connect  [%d]\n", err);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+	return SCMIRRORING_ERROR_NONE;
+}
+
 static void __interpret (char *cmd)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
@@ -99,6 +114,7 @@ static void __interpret (char *cmd)
 		strncpy (g_sink_mac_addr, value[1], sizeof (g_sink_mac_addr));
 		g_sink_mac_addr[17] = '\0';
 		g_print ("Sink mac address : %s\n", g_sink_mac_addr);
+		ret = __wifi_direct_device_connect();
 	}
 	else if (strncmp(cmd, "c", 1) == 0)
 	{
@@ -268,18 +284,6 @@ void _discover_cb(int error_code, wifi_direct_discovery_state_e discovery_state,
 			break;
 		case WIFI_DIRECT_DISCOVERY_FINISHED:
 			g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FINISHED \n");
-
-			if (strlen(g_sink_mac_addr) > 17 || strlen(g_sink_mac_addr) <= 0) {
-				g_print("\nWrong Mac_address");
-				return;
-			}
-
-			int err=  wifi_direct_connect(g_sink_mac_addr);
-			if (err != WIFI_DIRECT_ERROR_NONE) {
-				g_print("Failed to connect  [%d]\n", err);
-				return;
-			}
-
 			break;
 		default:
 			g_print("discovery_state : ERROR\n");
@@ -291,7 +295,19 @@ void _discover_cb(int error_code, wifi_direct_discovery_state_e discovery_state,
 
 void _ip_assigned_cb(const char *mac_address, const char *ip_address, const char *interface_address, void *user_data)
 {
+	char *local_ip = NULL;
+
+	wifi_direct_get_ip_address (&local_ip);
+
+	if (!local_ip) {
+		g_print ("Failed to get local ip\n");
+		return;
+	}
+
 	g_print("[_ip_assigned_cb] IP assigned [ ip addr : %s if addr : %s mac_addr:%s ]\n", ip_address, interface_address, mac_address);
+
+	scmirroring_src_set_ip_and_port(g_scmirroring, local_ip, "2022");
+	g_print ("Input server IP and port number IP[%s] Port[%s]\n", local_ip, "2022");
 }
 
 void _connection_cb(int error_code, wifi_direct_connection_state_e connection_state, const char *mac_address, void *user_data)
@@ -411,24 +427,23 @@ static gboolean __start_p2p_connection(gpointer data)
         }
     }
 
-    /*Enable Screen Mirroring*/
 #if 0
-    ret = wifi_direct_display_init();
+    /*Enable Screen Mirroring*/
+	ret = wifi_direct_init_display();
     if(ret != WIFI_DIRECT_ERROR_NONE)
     {
-        g_print("Error : wifi_direct_display_init failed : %d\n", ret);
+        g_print("Error : wifi_direct_init_display failed : %d\n", ret);
         goto error;
     }
 
-    /*Enable Wifi Direct - You can set this as true if you want to see it from wifi-direct list*/
-    ret = wifi_direct_display_set_wifi_direct(FALSE);
+	ret = wifi_direct_set_display_availability(TRUE);
     if(ret != WIFI_DIRECT_ERROR_NONE)
     {
-        g_print("Error : wifi_direct_display_init failed : %d\n", ret);
+        g_print("Error : wifi_direct_set_display_availability failed : %d\n", ret);
         goto error;
     }
 
-    ret = wifi_direct_display_set_device(WIFI_DISPLAY_TYPE_PRIMARY_SINK, 77, 0);
+	ret = wifi_direct_set_display(WIFI_DISPLAY_TYPE_SRC, 2022, 0);
     if(ret != WIFI_DIRECT_ERROR_NONE)
     {
         g_print("Error : wifi_direct_display_set_device failed : %d\n", ret);

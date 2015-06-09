@@ -115,6 +115,7 @@ typedef struct
 	GIOChannel *channel;
 	char *sock_path;
 	int connect_mode;
+	int current_state;
 	scmirroring_state_cb_s *scmirroring_state_cb;
 } scmirroring_src_s;
 

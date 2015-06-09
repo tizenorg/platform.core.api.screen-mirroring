@@ -1,6 +1,33 @@
 <manifest>
+	<define>
+		<domain name="miracast-server" policy="restricted" />
+		<request>
+			<smack request="system::use_internet" type="rwxat"/>
+			<smack request="device::app_logging" type="w"/>
+			<smack request="device::sys_logging" type="w"/>
+			<smack request="security-server::api-privilege-by-pid" type="w"/>
+			<smack request="dbus" type="rwxat"/>
+			<smack request="xorg" type="rwx"/>
+			<smack request="system::share" type="rwxat"/>
+			<smack request="pulseaudio" type="rwxat"/>
+			<smack request="pulseaudio::record" type="rwxat"/>
+			<smack request="device::hwcodec" type="rw"/>
+			<smack request="drmfw" type="rw"/>
+			<smack request="wifi-direct" type="rwx"/>
+			<smack request="wifi-direct::admin" type="rwx"/>
+			<smack request="wifi-direct::discover" type="rwx"/>
+			<smack request="wifi-direct::info" type="rwx"/>
+			<smack request="wifi-direct::native" type="rwx"/>
+		</request>
+		<permit>
+			<smack permit="dbus" type="rwxat"/>
+			<smack permit="system::use_internet" type="rwxat"/>
+		</permit>
+	</define>
 	<request>
 		<domain name="_" />
 	</request>
+	<assign>
+		<filesystem path="/usr/bin/miracast_server" label="miracast-server" exec_label="miracast-server" />
+	</assign>
 </manifest>
-

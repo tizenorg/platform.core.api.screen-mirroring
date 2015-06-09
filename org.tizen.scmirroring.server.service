@@ -1,4 +1,5 @@
 [D-BUS Service]
 Name=org.tizen.scmirroring.server
-Exec=/bin/sh -c 'export GST_DEBUG=2,*rtsp*:5;/usr/bin/miracast_server'
+Exec=/bin/sh -c 'export GST_DEBUG=2,*rtsp*:5;export DISPLAY=:0;/usr/bin/miracast_server'
 User=system
+Group=video
