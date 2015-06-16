@@ -20,7 +20,7 @@
 #include <glib.h>
 
 #ifdef __cplusplus
-  extern "C" {
+extern "C" {
 #endif
 
 #define ERROR_NONE 0
@@ -33,32 +33,29 @@
 
 #define SCMIRRORING_SRC_INI_MAX_STRLEN	80
 
-typedef enum __scmirroring_ini_videosink_element
-{
-  SCMIRRORING_INI_VSINK_V4l2SINK = 0,
-  SCMIRRORING_INI_VSINK_XIMAGESINK,
-  SCMIRRORING_INI_VSINK_XVIMAGESINK,
-  SCMIRRORING_INI_VSINK_FAKESINK,
-  SCMIRRORING_INI_VSINK_EVASIMAGESINK,
-  SCMIRRORING_INI_VSINK_GLIMAGESINK,
-  SCMIRRORING_INI_VSINK_NUM
+typedef enum __scmirroring_ini_videosink_element {
+	SCMIRRORING_INI_VSINK_V4l2SINK = 0,
+	SCMIRRORING_INI_VSINK_XIMAGESINK,
+	SCMIRRORING_INI_VSINK_XVIMAGESINK,
+	SCMIRRORING_INI_VSINK_FAKESINK,
+	SCMIRRORING_INI_VSINK_EVASIMAGESINK,
+	SCMIRRORING_INI_VSINK_GLIMAGESINK,
+	SCMIRRORING_INI_VSINK_NUM
 }SCMIRRORING_INI_VSINK_ELEMENT;
 
-typedef enum __scmirroring_ini_videosrc_element
-{
-  SCMIRRORING_INI_VSRC_XVIMAGESRC,
-  SCMIRRORING_INI_VSRC_FILESRC,
-  SCMIRRORING_INI_VSRC_CAMERASRC,
-  SCMIRRORING_INI_VSRC_VIDEOTESTSRC,
-  SCMIRRORING_INI_VSRC_NUM
+typedef enum __scmirroring_ini_videosrc_element {
+	SCMIRRORING_INI_VSRC_XVIMAGESRC,
+	SCMIRRORING_INI_VSRC_FILESRC,
+	SCMIRRORING_INI_VSRC_CAMERASRC,
+	SCMIRRORING_INI_VSRC_VIDEOTESTSRC,
+	SCMIRRORING_INI_VSRC_NUM
 }SCMIRRORING_INI_VSRC_ELEMENT;
 
-typedef enum __scmirroring_ini_session_mode
-{
-  SCMIRRORING_INI_AUDIO_VIDEO_MUXED,
-  SCMIRRORING_INI_VIDEO_ONLY,
-  SCMIRRORING_INI_AUDIO_ONLY,
-  SCMIRRORING_INI_AUDIO_VIDEO_SAPERATE
+typedef enum __scmirroring_ini_session_mode {
+	SCMIRRORING_INI_AUDIO_VIDEO_MUXED,
+	SCMIRRORING_INI_VIDEO_ONLY,
+	SCMIRRORING_INI_AUDIO_ONLY,
+	SCMIRRORING_INI_AUDIO_VIDEO_SAPERATE
 }SCMIRRORING_INI_SESSION_MODE;
 
 
@@ -71,32 +68,31 @@ typedef enum __scmirroring_ini_session_mode
  */
 
 /* @ mark means the item has tested */
-typedef struct __scmirroring_src_ini
-{
-  /* general */
-  SCMIRRORING_INI_VSRC_ELEMENT videosrc_element;
-  gint session_mode;
-  SCMIRRORING_INI_VSINK_ELEMENT videosink_element; // @
-  gchar name_of_video_converter[SCMIRRORING_SRC_INI_MAX_STRLEN];
-  gboolean skip_rescan; // @
-  gboolean generate_dot; // @
-  gboolean provide_clock; // @
-  gint mtu_size;
+typedef struct __scmirroring_src_ini {
+	/* general */
+	SCMIRRORING_INI_VSRC_ELEMENT videosrc_element;
+	gint session_mode;
+	SCMIRRORING_INI_VSINK_ELEMENT videosink_element;
+	gchar name_of_video_converter[SCMIRRORING_SRC_INI_MAX_STRLEN];
+	gboolean skip_rescan;
+	gboolean generate_dot;
+	gboolean provide_clock;
+	gint mtu_size;
 
-  gchar name_of_audio_device[SCMIRRORING_SRC_INI_MAX_STRLEN];
-  gint audio_latency_time;
-  gint audio_buffer_time;
-  gint audio_do_timestamp;
-  guint64 video_reso_supported;
-  guint decide_udp_bitrate[21];
-  gint video_native_resolution;
-  gint hdcp_enabled;
-  guint8 uibc_gen_capability;
+	gchar name_of_audio_device[SCMIRRORING_SRC_INI_MAX_STRLEN];
+	gint audio_latency_time;
+	gint audio_buffer_time;
+	gint audio_do_timestamp;
+	guint64 video_reso_supported;
+	guint decide_udp_bitrate[21];
+	gint video_native_resolution;
+	gint hdcp_enabled;
+	guint8 uibc_gen_capability;
 
-  gchar gst_param[SCMIRRORING_SRC_INI_GST_START_PARAMS_NUM][256]; // @
-  gboolean disable_segtrap;
+	gchar gst_param[SCMIRRORING_SRC_INI_GST_START_PARAMS_NUM][256];
+	gboolean disable_segtrap;
 
-  gint dump_ts;
+	gint dump_ts;
 
 } scmirroring_src_ini_t;
 
@@ -173,7 +169,7 @@ scmirroring_src_ini_get_structure(void);
 
 
 #ifdef __cplusplus
-  }
+}
 #endif
 
 #endif

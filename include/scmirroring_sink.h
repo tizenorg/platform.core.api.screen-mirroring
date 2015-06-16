@@ -108,14 +108,14 @@ int scmirroring_sink_set_state_changed_cb(scmirroring_sink_h scmirroring_sink, s
 int scmirroring_sink_set_ip_and_port(scmirroring_sink_h scmirroring_sink, const char *ip, const char *port);
 
 /**
- * @brief	Pass window handle created by application and surface type (x11/evas)
+ * @brief	Pass window handle created by application and surface type(x11/evas)
  * @details   This function will use handle created by the application to set the overlay &
  *		display on the surface passed by the application
  *
  * @since_tizen 2.4
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
- * @param[in] type Surface type (x11/evas)
+ * @param[in] type Surface type(x11/evas)
  * @param[in] display_surface The display_surface created by application to force sink to display content over it
  * @return @c 0 on success,
  *         otherwise a negative error value
@@ -134,8 +134,11 @@ int scmirroring_sink_set_ip_and_port(scmirroring_sink_h scmirroring_sink, const 
 int scmirroring_sink_set_display(scmirroring_sink_h scmirroring_sink, scmirroring_display_type_e type, void* display_surface);
 
 /**
- * @brief	Sets resolution of screen mirroring sink
- * @details This function sets resolution of screen mirroring sink.
+ * @brief	Sets resolutions of screen mirroring sink
+ * @details This function sets resolutions of screen mirroring sink using scmirroring_resolution_e as following.
+ *  (ex. SCMIRRORING_RESOLUTION_1920x1080_P30 | SCMIRRORING_RESOLUTION_1280x720_P30)
+ *  Use it only when you want to set specific resolutions but if sreen mirroring source dose not support the resolutions which you set,
+ *  the screen mirroring sink will be disconnected.
  *
  * @since_tizen 2.4
  *
@@ -155,7 +158,7 @@ int scmirroring_sink_set_display(scmirroring_sink_h scmirroring_sink, scmirrorin
  *
  * @see scmirroring_sink_create()
  */
-int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, scmirroring_resolution_e resolution);
+int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, int resolution);
 
 /**
  * @brief Prepares the screen mirroring sink handle and allocates specific resources.
@@ -215,7 +218,7 @@ int scmirroring_sink_prepare(scmirroring_sink_h scmirroring_sink);
 int scmirroring_sink_connect(scmirroring_sink_h scmirroring_sink);
 
 /**
- * @brief Start receiving data from the SCMIRRORING source and display it (mirror)
+ * @brief Start receiving data from the SCMIRRORING source and display it(mirror)
  *
  * @since_tizen 2.4
  * @privlevel public

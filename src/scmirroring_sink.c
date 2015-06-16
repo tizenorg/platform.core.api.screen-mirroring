@@ -18,24 +18,23 @@
 #include <scmirroring_sink.h>
 #include <scmirroring_private.h>
 
-static scmirroring_error_e __scmirroring_sink_error_convert(const char* func, int error)
+static scmirroring_error_e __scmirroring_sink_error_convert(const char *func, int error)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 	const char *errorstr = NULL;
 
-	switch(error)
-	{
+	switch (error) {
 		case MM_ERROR_NONE:
 			ret = SCMIRRORING_ERROR_NONE;
 			errorstr = "ERROR_NONE";
 			break;
 
-		case MM_ERROR_WFD_NOT_INITIALIZED :
-		case MM_ERROR_COMMON_INVALID_ATTRTYPE :
-		case MM_ERROR_COMMON_INVALID_PERMISSION :
-		case MM_ERROR_COMMON_OUT_OF_ARRAY :
-		case MM_ERROR_COMMON_OUT_OF_RANGE :
-		case MM_ERROR_COMMON_ATTR_NOT_EXIST :
+		case MM_ERROR_WFD_NOT_INITIALIZED:
+		case MM_ERROR_COMMON_INVALID_ATTRTYPE:
+		case MM_ERROR_COMMON_INVALID_PERMISSION:
+		case MM_ERROR_COMMON_OUT_OF_ARRAY:
+		case MM_ERROR_COMMON_OUT_OF_RANGE:
+		case MM_ERROR_COMMON_ATTR_NOT_EXIST:
 			ret = SCMIRRORING_ERROR_INVALID_PARAMETER;
 			errorstr = "INVALID_PARAMETER";
 			break;
@@ -45,7 +44,7 @@ static scmirroring_error_e __scmirroring_sink_error_convert(const char* func, in
 			errorstr = "INVALID_OPERATION";
 	}
 
-	if(ret != SCMIRRORING_ERROR_NONE)
+	if (ret != SCMIRRORING_ERROR_NONE)
 		scmirroring_error("[%s] %s (0x%08x) : core frameworks error code(0x%08x)", func, errorstr, ret, error);
 	else
 		scmirroring_debug("[%s] %s", func, errorstr);
@@ -57,8 +56,7 @@ static scmirroring_sink_state_e __scmirroring_sink_state_convert(MMWFDSinkStateT
 {
 	scmirroring_sink_state_e state = SCMIRRORING_SINK_STATE_NONE;
 
-	switch( mm_state )
-	{
+	switch (mm_state) {
 		case MM_WFD_SINK_STATE_NONE:
 			state = SCMIRRORING_SINK_STATE_NONE;
 			break;
@@ -92,7 +90,7 @@ void __mm_scmirroring_sink_set_message_cb(int error_type, MMWFDSinkStateType sta
 {
 	scmirroring_error_e error = __scmirroring_sink_error_convert(__func__, error_type);
 	scmirroring_sink_state_e state = __scmirroring_sink_state_convert(state_type);
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)uData;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)uData;
 
 	/* call application callback */
 	if (handle->scmirroring_sink_state_cb->state_cb)
@@ -109,21 +107,20 @@ int scmirroring_sink_create(scmirroring_sink_h *scmirroring_sink)
 
 	scmirroring_retvm_if(scmirroring_sink == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)calloc(1, sizeof(scmirroring_sink_s));
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)calloc(1, sizeof(scmirroring_sink_s));
 	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
 	handle->mm_handle = 0;
-	handle->ip= NULL;
+	handle->ip = NULL;
 	handle->port = NULL;
 	handle->use_hdcp = TRUE;
 	handle->scmirroring_sink_state_cb = NULL;
 
 	ret = mm_wfd_sink_create(&handle->mm_handle);
-	if(ret != MM_ERROR_NONE)
-	{
+	if (ret != MM_ERROR_NONE) {
 		SCMIRRORING_SAFE_FREE(handle);
 		scmirroring_error("Fail to Create");
-		return __scmirroring_sink_error_convert(__func__,ret);
+		return __scmirroring_sink_error_convert(__func__, ret);
 	}
 
 	*scmirroring_sink = (scmirroring_sink_h)handle;
@@ -137,7 +134,7 @@ int scmirroring_sink_create(scmirroring_sink_h *scmirroring_sink)
 
 int scmirroring_sink_set_ip_and_port(scmirroring_sink_h scmirroring_sink, const char *ip, const char *port)
 {
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
@@ -159,7 +156,7 @@ int scmirroring_sink_prepare(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
@@ -177,23 +174,21 @@ int scmirroring_sink_prepare(scmirroring_sink_h scmirroring_sink)
 int scmirroring_sink_connect(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
-	char server_uri[255] = {0,};
+	char server_uri[255] = {0, };
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
 	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 
-	if(handle->ip == NULL)
-	{
-		scmirroring_error("INVALID_IP(NULL) (0x%08x)",SCMIRRORING_ERROR_INVALID_PARAMETER);
+	if (handle->ip == NULL) {
+		scmirroring_error("INVALID_IP(NULL) (0x%08x)", SCMIRRORING_ERROR_INVALID_PARAMETER);
 		return SCMIRRORING_ERROR_INVALID_PARAMETER;
 	}
 
-	if(handle->port == NULL)
-	{
-		scmirroring_error("INVALID_PORT(NULL) (0x%08x)",SCMIRRORING_ERROR_INVALID_PARAMETER);
+	if (handle->port == NULL) {
+		scmirroring_error("INVALID_PORT(NULL) (0x%08x)", SCMIRRORING_ERROR_INVALID_PARAMETER);
 		return SCMIRRORING_ERROR_INVALID_PARAMETER;
 	}
 
@@ -216,7 +211,7 @@ int scmirroring_sink_unprepare(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
@@ -235,7 +230,7 @@ int scmirroring_sink_destroy(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
@@ -260,7 +255,7 @@ int scmirroring_sink_start(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
@@ -279,7 +274,7 @@ int scmirroring_sink_disconnect(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
@@ -298,24 +293,20 @@ int scmirroring_sink_set_state_changed_cb(scmirroring_sink_h scmirroring_sink, s
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
 	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 	scmirroring_retvm_if(callback == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "callback is NULL");
 
-	if(handle->scmirroring_sink_state_cb == NULL)
-	{
-		handle->scmirroring_sink_state_cb = (scmirroring_sink_state_cb_s*)calloc(1, sizeof(scmirroring_sink_state_cb_s));
-		if(handle->scmirroring_sink_state_cb == NULL)
-		{
+	if (handle->scmirroring_sink_state_cb == NULL) {
+		handle->scmirroring_sink_state_cb = (scmirroring_sink_state_cb_s *)calloc(1, sizeof(scmirroring_sink_state_cb_s));
+		if (handle->scmirroring_sink_state_cb == NULL) {
 			scmirroring_error("Error Set CB");
 			return SCMIRRORING_ERROR_OUT_OF_MEMORY;
 		}
-	}
-	else
-	{
+	} else {
 		memset(handle->scmirroring_sink_state_cb, 0, sizeof(scmirroring_sink_state_cb_s));
 	}
 
@@ -335,7 +326,7 @@ int scmirroring_sink_unset_state_changed_cb(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
@@ -352,37 +343,34 @@ int scmirroring_sink_unset_state_changed_cb(scmirroring_sink_h scmirroring_sink)
 	return ret;
 }
 
-int scmirroring_sink_set_display(scmirroring_sink_h scmirroring_sink, scmirroring_display_type_e type, void * display_surface)
+int scmirroring_sink_set_display(scmirroring_sink_h scmirroring_sink, scmirroring_display_type_e type, void *display_surface)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
 	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
 	scmirroring_retvm_if(display_surface == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "display_surface is NULL");
 
-	if((type != SCMIRRORING_DISPLAY_TYPE_OVERLAY) && (type != SCMIRRORING_DISPLAY_TYPE_EVAS))
-	{
+	if ((type != SCMIRRORING_DISPLAY_TYPE_OVERLAY) && (type != SCMIRRORING_DISPLAY_TYPE_EVAS)) {
 		scmirroring_error("Invalid display type [%d]", type);
 		return SCMIRRORING_ERROR_INVALID_PARAMETER;
 	}
 
-	scmirroring_debug("display type (%d)", type);
+	scmirroring_debug("display type(%d)", type);
 
 	ret = mm_wfd_sink_set_attribute(handle->mm_handle, NULL, "display_surface_type", type, NULL);
-	if(ret != MM_ERROR_NONE)
-	{
+	if (ret != MM_ERROR_NONE) {
 		scmirroring_error("Fail to Set Display Type");
-		return __scmirroring_sink_error_convert(__func__,ret);
+		return __scmirroring_sink_error_convert(__func__, ret);
 	}
 
-	ret = mm_wfd_sink_set_attribute(handle->mm_handle, NULL, "display_overlay", display_surface, sizeof(display_surface), NULL);
-	if(ret != MM_ERROR_NONE)
-	{
+	ret = mm_wfd_sink_set_attribute(handle->mm_handle, NULL, "display_overlay", display_surface, sizeof(void *), NULL);
+	if (ret != MM_ERROR_NONE) {
 		scmirroring_error("Fail to Set Display Overlay");
-		return __scmirroring_sink_error_convert(__func__,ret);
+		return __scmirroring_sink_error_convert(__func__, ret);
 	}
 
 	ret = __scmirroring_sink_error_convert(__func__, ret);
@@ -392,20 +380,28 @@ int scmirroring_sink_set_display(scmirroring_sink_h scmirroring_sink, scmirrorin
 	return ret;
 }
 
-int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, scmirroring_resolution_e resolution)
+int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, int resolution)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
 	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
-	if((resolution < SCMIRRORING_RESOLUTION_1920x1080_P30) ||(resolution >= SCMIRRORING_RESOLUTION_MAX))
-	{
+	if ((resolution < SCMIRRORING_RESOLUTION_1920x1080_P30) || (resolution >= SCMIRRORING_RESOLUTION_MAX)) {
 		scmirroring_error("INVALID resolution : %d", resolution);
 		return SCMIRRORING_ERROR_INVALID_PARAMETER;
 	}
+
+	scmirroring_debug("resolution(%d)", resolution);
+	ret = mm_wfd_sink_set_resolution(handle->mm_handle, resolution);
+	if (ret != MM_ERROR_NONE) {
+		scmirroring_error("Fail to Set resolution");
+		return __scmirroring_sink_error_convert(__func__, ret);
+	}
+
+	ret = __scmirroring_sink_error_convert(__func__, ret);
 
 	scmirroring_error_fleave();
 
@@ -416,11 +412,15 @@ int scmirroring_sink_pause(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
 	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+
+	ret = mm_wfd_sink_pause(handle->mm_handle);
+
+	ret = __scmirroring_sink_error_convert(__func__, ret);
 
 	scmirroring_error_fleave();
 
@@ -431,11 +431,15 @@ int scmirroring_sink_resume(scmirroring_sink_h scmirroring_sink)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 
-	scmirroring_sink_s *handle = (scmirroring_sink_s*)scmirroring_sink;
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
 	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+
+	ret = mm_wfd_sink_resume(handle->mm_handle);
+
+	ret = __scmirroring_sink_error_convert(__func__, ret);
 
 	scmirroring_error_fleave();
 

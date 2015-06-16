@@ -38,44 +38,53 @@ extern "C" {
 #endif
 #define LOG_TAG "CAPI_MEDIA_SCMIRRORING"
 
+#define FONT_COLOR_RESET    "\033[0m"
+#define FONT_COLOR_RED      "\033[31m"
+#define FONT_COLOR_GREEN    "\033[32m"
+#define FONT_COLOR_YELLOW   "\033[33m"
+#define FONT_COLOR_BLUE     "\033[34m"
+#define FONT_COLOR_PURPLE   "\033[35m"
+#define FONT_COLOR_CYAN     "\033[36m"
+#define FONT_COLOR_GRAY     "\033[37m"
+
 #define scmirroring_debug(fmt, arg...) do { \
-			LOGD(""fmt"", ##arg);     \
-		} while (0)
+		LOGD(FONT_COLOR_RESET""fmt"", ##arg);     \
+	} while (0)
 
 #define scmirroring_info(fmt, arg...) do { \
-			LOGI(""fmt"", ##arg);     \
-		} while (0)
+		LOGI(FONT_COLOR_GREEN""fmt""FONT_COLOR_RESET, ##arg);     \
+	} while (0)
 
 #define scmirroring_error(fmt, arg...) do { \
-			LOGE(""fmt"", ##arg);     \
-		} while (0)
+		LOGE(FONT_COLOR_RED""fmt""FONT_COLOR_RESET, ##arg);     \
+	} while (0)
 
 #define scmirroring_debug_fenter() do { \
-			LOGD("<Enter>");     \
-		} while (0)
+		LOGD(FONT_COLOR_RESET"<Enter>");     \
+	} while (0)
 
 #define scmirroring_debug_fleave() do { \
-			LOGD("<Leave>");     \
-		} while (0)
+		LOGD(FONT_COLOR_RESET"<Leave>");     \
+	} while (0)
 
 #define scmirroring_error_fenter() do { \
-			LOGE("NO-ERROR : <Enter>");     \
-		} while (0)
+		LOGE(FONT_COLOR_RESET"NO-ERROR : <Enter>");     \
+	} while (0)
 
 #define scmirroring_error_fleave() do { \
-			LOGE("NO-ERROR : <Leave>");     \
-		} while (0)
+		LOGE(FONT_COLOR_RESET"NO-ERROR : <Leave>");     \
+	} while (0)
 
 #define scmirroring_retvm_if(expr, val, fmt, arg...) do { \
 		if(expr) { \
-			LOGE(""fmt"", ##arg);     \
+			LOGE(FONT_COLOR_RED""fmt""FONT_COLOR_RESET, ##arg);     \
 			return (val); \
 		} \
 	} while (0)
 
 #define scmirroring_sucure_info(fmt, arg...) do { \
-			SECURE_LOGI(""fmt"", ##arg);     \
-		} while (0)
+		SECURE_LOGI(FONT_COLOR_GREEN""fmt""FONT_COLOR_RESET, ##arg);     \
+	} while (0)
 
 #define SCMIRRORING_SAFE_FREE(src)      { if(src) {free(src); src = NULL;}}
 #define STRING_VALID(str)		((str != NULL && strlen(str) > 0) ? TRUE : FALSE)
@@ -86,24 +95,21 @@ extern "C" {
 #define SCMIRRORING_STATE_CMD_STOP			"STOP"
 #define SCMIRRORING_STATE_CMD_DESTROY		"DESTROY"
 
-typedef struct
-{
+typedef struct {
 	int error_code;
 	int src_state;
 	void *user_data;
 	scmirroring_state_cb state_cb;
 }scmirroring_state_cb_s;
 
-typedef struct
-{
+typedef struct {
 	int error_code;
 	int sink_state;
 	void *user_data;
 	scmirroring_sink_state_cb state_cb;
 }scmirroring_sink_state_cb_s;
 
-typedef struct
-{
+typedef struct {
 	char *ip;
 	char *port;
 	bool use_hdcp;
@@ -119,8 +125,7 @@ typedef struct
 	scmirroring_state_cb_s *scmirroring_state_cb;
 } scmirroring_src_s;
 
-typedef struct
-{
+typedef struct {
 	MMHandleType mm_handle;
 	char *ip;
 	char *port;
