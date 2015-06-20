@@ -1,6 +1,6 @@
 Name:       capi-media-screen-mirroring
 Summary:    A screen mirroring library in Tizen C API
-Version:    0.1.34
+Version:    0.1.35
 Release:    0
 Group:      Multimedia/API
 License:    Apache License, Version 2.0
@@ -13,7 +13,6 @@ BuildRequires:  pkgconfig(gstreamer-1.0)
 BuildRequires:  pkgconfig(gstreamer-plugins-base-1.0)
 BuildRequires:  pkgconfig(gstreamer-rtsp-server-1.0)
 BuildRequires:  pkgconfig(capi-network-wifi-direct)
-BuildRequires:  pkgconfig(wifi-direct)
 BuildRequires:  pkgconfig(mm-wfd)
 BuildRequires:  pkgconfig(iniparser)
 
