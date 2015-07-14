@@ -1,6 +1,6 @@
 Name:       capi-media-screen-mirroring
 Summary:    A screen mirroring library in Tizen C API
-Version:    0.1.35
+Version:    0.1.39
 Release:    0
 Group:      Multimedia/API
 License:    Apache License, Version 2.0
@@ -8,6 +8,7 @@ Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(capi-base-common)
+BuildRequires:  pkgconfig(capi-system-info)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gstreamer-1.0)
 BuildRequires:  pkgconfig(gstreamer-plugins-base-1.0)
@@ -34,12 +35,9 @@ Requires: %{name} = %{version}-%{release}
 
 
 %build
-#export CFLAGS+=" -Wcast-align"
-#export CFLAGS+=" -Wextra -Wno-array-bounds"
-#export CFLAGS+=" -Wno-ignored-qualifiers -Wno-unused-parameter -Wshadow"
-#export CFLAGS+=" -Wwrite-strings -Wswitch-default"
-#export CFLAGS+=" -Wall -Wcast-qual -Wno-empty-body"
-#export CFLAGS+=" -Werror"
+export CFLAGS+=" -Wextra -Wno-array-bounds"
+export CFLAGS+=" -Wno-ignored-qualifiers -Wno-unused-parameter -Wshadow"
+export CFLAGS+=" -Wwrite-strings -Wswitch-default"
 
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 
@@ -86,6 +84,7 @@ cp -rf config/scmirroring_src.ini %{buildroot}/usr/etc/scmirroring_src.ini
 %{_includedir}/media/scmirroring_sink.h
 %{_includedir}/media/scmirroring_type.h
 %{_includedir}/media/scmirroring_src_ini.h
+%{_includedir}/media/scmirroring_internal.h
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/libcapi-media-screen-mirroring.so
 

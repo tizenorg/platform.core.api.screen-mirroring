@@ -21,7 +21,7 @@
 #include <wifi-direct.h>
 
 #define MAX_STRING_LEN    2048
-/*#define ENABLE_WIFI_DIRECT */
+#define ENABLE_WIFI_DIRECT
 
 scmirroring_src_h g_scmirroring = NULL;
 GMainLoop *g_loop;
@@ -32,7 +32,9 @@ bool _discovered_peer_cb(wifi_direct_discovered_peer_info_s *peer, void *user_da
 void _discover_cb(int error_code, wifi_direct_discovery_state_e discovery_state, void *user_data);
 void _ip_assigned_cb(const char *mac_address, const char *ip_address, const char *interface_address, void *user_data);
 void _connection_cb(int error_code, wifi_direct_connection_state_e connection_state, const char *mac_address, void *user_data);
+#ifdef ENABLE_WIFI_DIRECT
 static gboolean __start_p2p_connection(gpointer data);
+#endif
 static gboolean __disconnect_p2p_connection(void);
 static int g_peer_cnt = 0;
 static char g_peer_ip[32];
@@ -309,6 +311,8 @@ void _connection_cb(int error_code, wifi_direct_connection_state_e connection_st
 		case WIFI_DIRECT_GROUP_CREATED:
 		case WIFI_DIRECT_GROUP_DESTROYED:
 		case WIFI_DIRECT_DISASSOCIATION_IND:
+			break;
+		default:
 			break;
 	}
 

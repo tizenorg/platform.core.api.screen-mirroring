@@ -22,12 +22,12 @@ SET(INC_DIR include)
 INCLUDE_DIRECTORIES(${INC_DIR})
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(${fw_name} REQUIRED ${dependents})
+pkg_check_modules(${fw_name} REQUIRED ${dependents} capi-system-info)
 FOREACH(flag ${${fw_name}_CFLAGS})
     SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
 ENDFOREACH(flag)
 
-SET(CMAKE_C_FLAGS "-I./include ${CMAKE_C_FLAGS} ${EXTRA_CFLAGS} -fPIC -Wall -Wno-error=unused-but-set-variable -DGST_EXT_TIME_ANALYSIS")
+SET(CMAKE_C_FLAGS "-I./include ${CMAKE_C_FLAGS} ${EXTRA_CFLAGS} -fPIC -Wall -Werror -DGST_EXT_TIME_ANALYSIS")
 SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
 
 IF("${ARCH}" MATCHES "^arm.*")

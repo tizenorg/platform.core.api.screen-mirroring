@@ -30,7 +30,6 @@
 #include <gst/rtsp-server/rtsp-server-wfd.h>
 #include <gst/rtsp-server/rtsp-media-factory-wfd.h>
 
-#include "scmirroring_type.h"
 #include "scmirroring_private.h"
 #include "scmirroring_src_ini.h"
 
@@ -52,7 +51,7 @@ static gint g_server_status = MIRACAST_WFD_SOURCE_OFF;
 static int __miracast_server_emit_status_signal(int status);
 static const GDBusMethodInfo scmirroring_server_method_info_method = {
 	-1,
-	"launch_method",
+	(char *)"launch_method",
 	NULL,
 	NULL,
 	NULL
@@ -61,7 +60,7 @@ static const GDBusMethodInfo *const scmirroring_server_method_info_pointers[] = 
 
 static const GDBusInterfaceInfo scmirroring_server_interface_info = {
 	-1,
-	PROC_DBUS_INTERFACE,
+	(char *)PROC_DBUS_INTERFACE,
 	(GDBusMethodInfo **) &scmirroring_server_method_info_pointers,
 	(GDBusSignalInfo **) NULL,
 	(GDBusPropertyInfo **) NULL,
@@ -110,7 +109,8 @@ handle_method_call(GDBusConnection       *connection,
 static const GDBusInterfaceVTable interface_vtable = {
 	handle_method_call,
 	NULL,
-	NULL
+	NULL,
+	{NULL}
 };
 
 static void
@@ -193,7 +193,7 @@ static void miracast_server_object_class_init(MiracastServerObjectClass *klass)
 	scmirroring_debug("miracast_server_object_class_init\n");
 }
 
-int __miracast_server_send_resp(MiracastServerObject *server, char *cmd)
+int __miracast_server_send_resp(MiracastServerObject *server, const char *cmd)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
 	char *_cmd = NULL;
@@ -213,7 +213,7 @@ int __miracast_server_send_resp(MiracastServerObject *server, char *cmd)
 	_cmd = g_strdup(cmd);
 	_cmd[strlen(_cmd)] = '\0';
 
-	if (write(client_sock, _cmd, strlen(_cmd) + 1) != strlen(_cmd) + 1) {
+	if (write(client_sock, _cmd, strlen(_cmd) + 1) != ((int)(strlen(_cmd) + 1))) {
 		scmirroring_error("sendto failed [%s]", strerror(errno));
 		ret = SCMIRRORING_ERROR_INVALID_OPERATION;
 	} else {
@@ -228,7 +228,7 @@ static void __miracast_server_quit_program(MiracastServerObject *server)
 {
 	scmirroring_error("Quit program is called");
 
-	void *pool;
+	void *pool = NULL;
 	int i;
 	int ret = 0;
 
@@ -243,8 +243,10 @@ static void __miracast_server_quit_program(MiracastServerObject *server)
 	}
 
 	pool = (void *)gst_rtsp_server_get_session_pool(server->server);
-	gst_rtsp_session_pool_cleanup(pool);
-	g_object_unref(pool);
+	if (pool) {
+		gst_rtsp_session_pool_cleanup(pool);
+		g_object_unref(pool);
+	}
 
 	int serv_ref_cnt = GST_OBJECT_REFCOUNT_VALUE(server->server);
 	scmirroring_debug("serv ref cnt:%d", serv_ref_cnt);
@@ -434,10 +436,16 @@ int __miracast_server_gst_init()
 
 	/* alloc */
 	argc = calloc(1, sizeof(int));
-	argv = calloc(max_argc, sizeof(gchar *));
-	if (!argc || !argv) {
+	if (!argc) {
 		scmirroring_error("Cannot allocate memory for scmirroringsink\n");
-		goto ERROR;
+		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
+	}
+
+	argv = calloc(max_argc, sizeof(gchar *));
+	if (!argv) {
+ 		scmirroring_error("Cannot allocate memory for scmirroringsink\n");
+		SCMIRRORING_SAFE_FREE(argc);
+		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
 	}
 
 	/* we would not do fork for scanning plugins */
@@ -593,6 +601,10 @@ int __miracast_server_start(MiracastServerObject *server_obj)
 	gst_rtsp_server_set_address(GST_RTSP_SERVER(server), server_obj->ip);
 	gst_rtsp_server_set_service(GST_RTSP_SERVER(server), server_obj->port);
 	mounts = gst_rtsp_server_get_mount_points(GST_RTSP_SERVER(server));
+	if (NULL == mounts) {
+		scmirroring_error("Failed to get mount point...");
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
 
 	factory = gst_rtsp_media_factory_wfd_new();
 
@@ -605,6 +617,13 @@ int __miracast_server_start(MiracastServerObject *server_obj)
 	                               scmirroring_src_ini_get_structure()->mtu_size
 	);
 
+	gst_rtsp_media_factory_wfd_set_encoders (factory,
+			scmirroring_src_ini_get_structure()->name_of_video_encoder,
+			scmirroring_src_ini_get_structure()->name_of_audio_encoder_aac,
+			scmirroring_src_ini_get_structure()->name_of_audio_encoder_ac3);
+
+	gst_rtsp_wfd_server_set_audio_codec (server,
+			scmirroring_src_ini_get_structure()->audio_codec);
 
 	if (server_obj->resolution == SCMIRRORING_RESOLUTION_1920x1080_P30) {
 		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
@@ -765,8 +784,8 @@ gboolean __miracast_server_client_read_cb(GIOChannel *src,
 			scmirroring_debug("Read %d bytes", read);
 		}
 
-		int i = 0;
-		int idx = 0;
+		gsize i = 0;
+		gsize idx = 0;
 
 		/* Handling multiple commands like "CMD1\0CMD2\0CMD3\0" */
 		for (i = 0; i < read; i++) {
@@ -856,9 +875,13 @@ static int __miracast_server_emit_status_signal(int status)
 	}
 
 	conn = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &err);
-	if (!conn && err) {
-		scmirroring_error("g_bus_get_sync() error(%s) ", err->message);
-		g_error_free(err);
+	if (!conn) {
+		if (err) {
+			scmirroring_error("g_bus_get_sync() error (%s) ", err->message);
+			g_error_free(err);
+		} else {
+			scmirroring_error("g_bus_get_sync() unknown error ");
+		}
 		return -1;
 	}
 

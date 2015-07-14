@@ -19,28 +19,21 @@
 #define __TIZEN_SCREEN_MIRRORING_DOC_H__
 
 /**
- * @ingroup CAPI_MEDIA_FRAMEWORK
- * @defgroup CAPI_MEDIA_SCREEN_MIRRORING_MODULE Screen Mirroring
- * @brief The @ref CAPI_MEDIA_SCREEN_MIRRORING_MODULE API provides functions for screen mirroring as sink.
- * @section CAPI_MEDIA_SCREEN_MIRRORING_MODULE_HEADER Required Header
- *    \#include <scmirroring_type.h>
- *    \#include <scmirroring_sink.h>
- * @section CAPI_MEDIA_SCREEN_MIRRORING_OVERVIEW Overview
- * The @ref CAPI_MEDIA_SCREEN_MIRRORING_MODULE API allows you to implement screen mirroring application as sink.
- *
+ * @file screen_mirroring_doc.h
+ * @brief This file contains high level documentation for the Screen Mirroring Sink API
  */
 
-/*
- * @ingroup CAPI_MEDIA_SCREEN_MIRRORING_MODULE
- * @defgroup CAPI_MEDIA_SCREEN_MIRRORING_SINK_MODULE Screen Mirroring sink
- * @brief The @ref CAPI_MEDIA_SCREEN_MIRRORING_SINK_MODULE API provides functions for screen mirroring as sink.
+/**
+ * @defgroup CAPI_MEDIA_SCREEN_MIRRORING_MODULE Screen Mirroring
+ * @brief The @ref CAPI_MEDIA_SCREEN_MIRRORING_MODULE API provides functions for screen mirroring as sink.
+ * @ingroup CAPI_MEDIA_FRAMEWORK
  *
- * @section CAPI_MEDIA_SCREEN_MIRRORING_SINK_MODULE_HEADER Required Header
+ * @section CAPI_MEDIA_SCREEN_MIRRORING_MODULE_HEADER Required Header
  *    \#include <scmirroring_sink.h>
  *
- * @section CAPI_MEDIA_SCREEN_MIRRORING_SINK_OVERVIEW Overview
- * The @ref CAPI_MEDIA_SCREEN_MIRRORING_SINK_MODULE API allows you to implement screen mirroring application as sink.
- * It gives the ability to connect to the screen mirroring source, start / disconnect / pause / resume screen mirroring sink, set resolution and display, register state change callback function.
+ * @section CAPI_MEDIA_SCREEN_MIRRORING_OVERVIEW Overview
+ * The @ref CAPI_MEDIA_SCREEN_MIRRORING_MODULE API allows you to implement screen mirroring application as sink.
+ * It gives the ability to connect to and disconnect from a screen mirroring source, and start, pause, and resume the screen mirroring sink, set the resolution or display, register state change callback function.
  *
  * @subsection CAPI_MEDIA_SCREEN_MIRRORING_SINK_LIFE_CYCLE_STATE_DIAGRAM State Diagram
  * The following diagram shows the life cycle and states of the screen mirroring sink.
@@ -140,7 +133,7 @@
  * <tr>
  *    <td>scmirroring_sink_unset_state_changed_cb()</td>
  *    <td>NULL/ PREPARED/ CONNECTED/ PLAYING/ PAUSED/ DISCONNECTED</td>
- *    <td>This function must be called after register callback function.</td>
+ *    <td></td>
  * </tr>
  * <tr>
  *    <td>scmirroring_sink_set_display()</td>
@@ -213,6 +206,14 @@
  *        <td>This callback is called for state and error of screen mirroring.</td>
  *     </tr>
  *</table></div>
+ * @section CAPI_NETWORK_WIFI_DIRECT_MANAGER_MODULE_FEATURE Related Features
+ * This API is related with the following feature:\n
+ * - http://tizen.org/feature/network.wifi.direct.display\n
+ *
+ * It is recommended to design feature related codes in your application for reliability.
+ * You can check if a device supports the related features for this API by using @ref CAPI_SYSTEM_SYSTEM_INFO_MODULE, thereby controlling the procedure of your application.
+ * To ensure your application is only running on the device with specific features, please define the features in your manifest file using the manifest editor in the SDK.
+ * More details on featuring your application can be found from <a href="../org.tizen.mobile.native.appprogramming/html/ide_sdk_tools/feature_element.htm"><b>Feature Element</b>.</a>
  */
 
 

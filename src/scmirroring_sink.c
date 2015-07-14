@@ -101,14 +101,16 @@ void __mm_scmirroring_sink_set_message_cb(int error_type, MMWFDSinkStateType sta
 
 int scmirroring_sink_create(scmirroring_sink_h *scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(scmirroring_sink == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(scmirroring_sink == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)calloc(1, sizeof(scmirroring_sink_s));
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Fail to allocate memory for handle");
 
 	handle->mm_handle = 0;
 	handle->ip = NULL;
@@ -134,11 +136,13 @@ int scmirroring_sink_create(scmirroring_sink_h *scmirroring_sink)
 
 int scmirroring_sink_set_ip_and_port(scmirroring_sink_h scmirroring_sink, const char *ip, const char *port)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 	scmirroring_retvm_if(ip == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "ip is NULL");
 	scmirroring_retvm_if(port == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "port is NULL");
 
@@ -154,13 +158,15 @@ int scmirroring_sink_set_ip_and_port(scmirroring_sink_h scmirroring_sink, const 
 
 int scmirroring_sink_prepare(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	ret = mm_wfd_sink_prepare(handle->mm_handle);
 
@@ -173,6 +179,8 @@ int scmirroring_sink_prepare(scmirroring_sink_h scmirroring_sink)
 
 int scmirroring_sink_connect(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 	char server_uri[255] = {0, };
 
@@ -180,7 +188,7 @@ int scmirroring_sink_connect(scmirroring_sink_h scmirroring_sink)
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	if (handle->ip == NULL) {
 		scmirroring_error("INVALID_IP(NULL) (0x%08x)", SCMIRRORING_ERROR_INVALID_PARAMETER);
@@ -209,13 +217,15 @@ int scmirroring_sink_connect(scmirroring_sink_h scmirroring_sink)
 
 int scmirroring_sink_unprepare(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	ret = mm_wfd_sink_unprepare(handle->mm_handle);
 
@@ -228,13 +238,15 @@ int scmirroring_sink_unprepare(scmirroring_sink_h scmirroring_sink)
 
 int scmirroring_sink_destroy(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	ret = mm_wfd_sink_destroy(handle->mm_handle);
 
@@ -253,13 +265,15 @@ int scmirroring_sink_destroy(scmirroring_sink_h scmirroring_sink)
 
 int scmirroring_sink_start(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	ret = mm_wfd_sink_start(handle->mm_handle);
 
@@ -272,13 +286,15 @@ int scmirroring_sink_start(scmirroring_sink_h scmirroring_sink)
 
 int scmirroring_sink_disconnect(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	ret = mm_wfd_sink_disconnect(handle->mm_handle);
 
@@ -291,13 +307,15 @@ int scmirroring_sink_disconnect(scmirroring_sink_h scmirroring_sink)
 
 int scmirroring_sink_set_state_changed_cb(scmirroring_sink_h scmirroring_sink, scmirroring_sink_state_cb callback, void *user_data)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 	scmirroring_retvm_if(callback == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "callback is NULL");
 
 	if (handle->scmirroring_sink_state_cb == NULL) {
@@ -324,13 +342,15 @@ int scmirroring_sink_set_state_changed_cb(scmirroring_sink_h scmirroring_sink, s
 
 int scmirroring_sink_unset_state_changed_cb(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	ret = mm_wfd_sink_set_message_callback(handle->mm_handle, NULL, NULL);
 
@@ -345,13 +365,15 @@ int scmirroring_sink_unset_state_changed_cb(scmirroring_sink_h scmirroring_sink)
 
 int scmirroring_sink_set_display(scmirroring_sink_h scmirroring_sink, scmirroring_display_type_e type, void *display_surface)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 	scmirroring_retvm_if(display_surface == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "display_surface is NULL");
 
 	if ((type != SCMIRRORING_DISPLAY_TYPE_OVERLAY) && (type != SCMIRRORING_DISPLAY_TYPE_EVAS)) {
@@ -382,15 +404,17 @@ int scmirroring_sink_set_display(scmirroring_sink_h scmirroring_sink, scmirrorin
 
 int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, int resolution)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 	if ((resolution < SCMIRRORING_RESOLUTION_1920x1080_P30) || (resolution >= SCMIRRORING_RESOLUTION_MAX)) {
-		scmirroring_error("INVALID resolution : %d", resolution);
+		scmirroring_error("Invalid resolution : %d", resolution);
 		return SCMIRRORING_ERROR_INVALID_PARAMETER;
 	}
 
@@ -410,13 +434,15 @@ int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, int res
 
 int scmirroring_sink_pause(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	ret = mm_wfd_sink_pause(handle->mm_handle);
 
@@ -429,18 +455,223 @@ int scmirroring_sink_pause(scmirroring_sink_h scmirroring_sink)
 
 int scmirroring_sink_resume(scmirroring_sink_h scmirroring_sink)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
 
 	scmirroring_error_fenter();
 
-	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
 
 	ret = mm_wfd_sink_resume(handle->mm_handle);
 
 	ret = __scmirroring_sink_error_convert(__func__, ret);
 
+	scmirroring_error_fleave();
+
+	return ret;
+}
+
+int scmirroring_sink_get_negotiated_video_codec(scmirroring_sink_h *scmirroring_sink, scmirroring_video_codec_e *codec)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+	int mm_codec = MM_WFD_SINK_VIDEO_CODEC_NONE;
+
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
+	scmirroring_error_fenter();
+
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
+	scmirroring_retvm_if(codec == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "codec is NULL");
+
+	*codec = SCMIRRORING_VIDEO_CODEC_NONE;
+
+	ret = mm_wfd_sink_get_negotiated_video_codec(handle->mm_handle, &mm_codec);
+	ret = __scmirroring_sink_error_convert(__func__, ret);
+	if (ret != SCMIRRORING_ERROR_NONE)
+		return ret;
+
+	switch (mm_codec) {
+		case MM_WFD_SINK_VIDEO_CODEC_H264:
+			*codec = SCMIRRORING_VIDEO_CODEC_H264;
+			break;
+		default:
+			*codec = SCMIRRORING_VIDEO_CODEC_NONE;
+			break;
+	}
+
+	scmirroring_debug("codec: %d", *codec);
+	scmirroring_error_fleave();
+
+	return ret;
+}
+
+int scmirroring_sink_get_negotiated_video_resolution(scmirroring_sink_h *scmirroring_sink, int *width, int *height)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
+	scmirroring_error_fenter();
+
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
+	scmirroring_retvm_if(width == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "width is NULL");
+	scmirroring_retvm_if(height == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "height is NULL");
+
+	*width = 0;
+	*height = 0;
+
+	ret = mm_wfd_sink_get_negotiated_video_resolution(handle->mm_handle, width, height);
+	ret = __scmirroring_sink_error_convert(__func__, ret);
+	if (ret != SCMIRRORING_ERROR_NONE)
+		return ret;
+
+	scmirroring_debug("width: %d, height: %d", *width, *height);
+	scmirroring_error_fleave();
+
+	return ret;
+}
+
+int scmirroring_sink_get_negotiated_video_frame_rate(scmirroring_sink_h *scmirroring_sink, int *frame_rate)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
+	scmirroring_error_fenter();
+
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
+	scmirroring_retvm_if(frame_rate == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "frame_rate is NULL");
+
+	*frame_rate = 0;
+
+	ret = mm_wfd_sink_get_negotiated_video_frame_rate(handle->mm_handle, frame_rate);
+	ret = __scmirroring_sink_error_convert(__func__, ret);
+	if (ret != SCMIRRORING_ERROR_NONE)
+		return ret;
+
+	scmirroring_debug("frame rate: %d", *frame_rate);
+	scmirroring_error_fleave();
+
+	return ret;
+}
+
+int scmirroring_sink_get_negotiated_audio_codec(scmirroring_sink_h *scmirroring_sink, scmirroring_audio_codec_e *codec)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+	int mm_codec = MM_WFD_SINK_AUDIO_CODEC_NONE;
+
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
+	scmirroring_error_fenter();
+
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
+	scmirroring_retvm_if(codec == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "codec is NULL");
+
+	*codec = SCMIRRORING_AUDIO_CODEC_NONE;
+
+	ret = mm_wfd_sink_get_negotiated_audio_codec(handle->mm_handle, &mm_codec);
+	ret = __scmirroring_sink_error_convert(__func__, ret);
+	if (ret != SCMIRRORING_ERROR_NONE)
+		return ret;
+
+	switch (mm_codec) {
+		case MM_WFD_SINK_AUDIO_CODEC_AAC:
+			*codec = SCMIRRORING_AUDIO_CODEC_AAC;
+			break;
+		case MM_WFD_SINK_AUDIO_CODEC_AC3:
+			*codec = SCMIRRORING_AUDIO_CODEC_AC3;
+			break;
+		case MM_WFD_SINK_AUDIO_CODEC_LPCM:
+			*codec = SCMIRRORING_AUDIO_CODEC_LPCM;
+			break;
+		default:
+			*codec = SCMIRRORING_AUDIO_CODEC_NONE;
+			break;
+	}
+
+	scmirroring_debug("codec: %d", *codec);
+	scmirroring_error_fleave();
+
+	return ret;
+}
+
+int scmirroring_sink_get_negotiated_audio_channel(scmirroring_sink_h *scmirroring_sink, int *channel)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
+	scmirroring_error_fenter();
+
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
+	scmirroring_retvm_if(channel == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "channel is NULL");
+
+	*channel = 0;
+
+	ret = mm_wfd_sink_get_negotiated_audio_channel(handle->mm_handle, channel);
+	ret = __scmirroring_sink_error_convert(__func__, ret);
+	if (ret != SCMIRRORING_ERROR_NONE)
+		return ret;
+
+	scmirroring_debug("channel: %d", *channel);
+	scmirroring_error_fleave();
+
+	return ret;
+}
+
+int scmirroring_sink_get_negotiated_audio_sample_rate(scmirroring_sink_h *scmirroring_sink, int *sample_rate)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
+	scmirroring_error_fenter();
+
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
+	scmirroring_retvm_if(sample_rate == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "sample_rate is NULL");
+
+	*sample_rate = 0;
+
+	ret = mm_wfd_sink_get_negotiated_audio_sample_rate(handle->mm_handle, sample_rate);
+	ret = __scmirroring_sink_error_convert(__func__, ret);
+	if (ret != SCMIRRORING_ERROR_NONE)
+		return ret;
+
+	scmirroring_debug("sample rate: %d", *sample_rate);
+	scmirroring_error_fleave();
+
+	return ret;
+}
+
+int scmirroring_sink_get_negotiated_audio_bitwidth(scmirroring_sink_h *scmirroring_sink, int *bitwidth)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+
+	scmirroring_sink_s *handle = (scmirroring_sink_s *)scmirroring_sink;
+	scmirroring_error_fenter();
+
+	scmirroring_retvm_if(handle == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "scmirroring_sink is NULL");
+	scmirroring_retvm_if(bitwidth == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "bitwidth is NULL");
+
+	*bitwidth = 0;
+
+	ret = mm_wfd_sink_get_negotiated_audio_bitwidth(handle->mm_handle, bitwidth);
+	ret = __scmirroring_sink_error_convert(__func__, ret);
+	if (ret != SCMIRRORING_ERROR_NONE)
+		return ret;
+
+	scmirroring_debug("bitwidth: %d", *bitwidth);
 	scmirroring_error_fleave();
 
 	return ret;

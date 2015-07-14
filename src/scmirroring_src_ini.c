@@ -30,7 +30,7 @@ static void __scmirroring_ini_check_ini_status(void);
 /* macro */
 #define SCMIRRORING_INI_GET_STRING(x_item, x_ini, x_default) \
 	do { \
-		gchar *str = iniparser_getstring(dict, x_ini, x_default); \
+		gchar *str = iniparser_getstring(dict, x_ini, (char *)x_default); \
 		\
 		if (str && \
 		     (strlen(str) > 1) && \
@@ -91,6 +91,7 @@ scmirroring_src_ini_load(void)
 		/* general */
 		gchar temp[SCMIRRORING_SRC_INI_MAX_STRLEN];
 		g_scmirroring_src_ini.videosrc_element = iniparser_getint(dict, "general:videosrc element", DEFAULT_VIDEOSRC);
+		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_video_encoder, "general:video encoder element", DEFAULT_VIDEOENC);
 		g_scmirroring_src_ini.session_mode = iniparser_getint(dict, "general:session_mode", DEFAULT_SESSION_MODE);
 		g_scmirroring_src_ini.videosink_element = iniparser_getint(dict, "general:videosink element", DEFAULT_VIDEOSINK);
 		g_scmirroring_src_ini.disable_segtrap = iniparser_getboolean(dict, "general:disable segtrap", DEFAULT_DISABLE_SEGTRAP);
@@ -99,6 +100,9 @@ scmirroring_src_ini_load(void)
 		g_scmirroring_src_ini.mtu_size = iniparser_getint(dict, "general:mtu_size value", DEFAULT_MTU_SIZE);
 		g_scmirroring_src_ini.generate_dot = iniparser_getboolean(dict, "general:generate dot", DEFAULT_GENERATE_DOT);
 		g_scmirroring_src_ini.provide_clock = iniparser_getboolean(dict, "general:provide clock", DEFAULT_PROVIDE_CLOCK);
+		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_encoder_aac, "general:audio encoder aac name", DEFAULT_AUDIOENC_AAC);
+		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_encoder_ac3, "general:audio encoder ac3 name", DEFAULT_AUDIOENC_AC3);
+		g_scmirroring_src_ini.audio_codec = iniparser_getint(dict, "general:audio codec", DEFAULT_AUDIO_CODEC);
 #ifndef ENABLE_QC_SPECIFIC
 		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_device, "general:exynosaudio device name", DEFAULT_AUDIO_DEVICE_NAME);
 		g_scmirroring_src_ini.audio_buffer_time = iniparser_getint(dict, "general:exynosaudio buffer_time", DEFAULT_AUDIO_BUFFER_TIME);
