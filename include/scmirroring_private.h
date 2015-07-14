@@ -18,9 +18,10 @@
 #define __TIZEN_MEDIA_SCMIRRORING_PRIVATE_H__
 
 #include <stdlib.h>
-#include <scmirroring_type.h>
 #include <dlog.h>
 #include <mm_types.h>
+#include <system_info.h>
+#include <scmirroring_internal.h>
 
 #ifndef TRUE
 #define TRUE 1
@@ -132,6 +133,22 @@ typedef struct {
 	bool use_hdcp;
 	scmirroring_sink_state_cb_s *scmirroring_sink_state_cb;
 } scmirroring_sink_s;
+
+#define WIFIDIRECT_DISPLAY_FEATURE "http://tizen.org/feature/network.wifi.direct.display"
+
+#define CHECK_FEATURE_SUPPORTED(feature_name)\
+	do {\
+		bool feature_supported = FALSE;\
+		if(!system_info_get_platform_bool(feature_name, &feature_supported)){\
+			if(feature_supported == FALSE){\
+				scmirroring_error("%s feature is disabled", feature_name);\
+				return SCMIRRORING_ERROR_NOT_SUPPORTED;\
+			}\
+		} else {\
+			scmirroring_error("Error - Feature getting from System Info");\
+			return SCMIRRORING_ERROR_UNKNOWN;\
+		}\
+	} while (0);
 
 #ifdef __cplusplus
 }

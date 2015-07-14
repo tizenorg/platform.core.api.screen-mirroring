@@ -20,12 +20,13 @@
 #include <scmirroring_sink.h>
 #include <wifi-direct.h>
 
+/*#define TEST_WITH_WIFI_DIRECT*/
+
 #define MAX_STRING_LEN    2048
 #define SINKTEST_EXECUTE_DELAY	5000
 #define MAIN_MENU 0
 #define SUBMENU_RESOLUTION 1
-
-/*#define TEST_WITH_WIFI_DIRECT */
+#define SUBMENU_GETTING_STREAM_INFO 2
 
 scmirroring_sink_h g_scmirroring = NULL;
 gint g_resolution = 0;
@@ -50,10 +51,16 @@ static gboolean __disconnect_p2p_connection(void);
 #endif
 static void __quit_program(void);
 gboolean 	__timeout_menu_display(void *data);
+
+/* Submenu for setting resolution */
 static void __display_resolution_submenu(void);
 gboolean 	__timeout_resolution_submenu_display(void *data);
 static void __interpret_resolution_submenu(char *cmd);
 
+/* Submenu for getting negotiated audio and video information */
+static void __display_stream_info_submenu(void);
+gboolean 	__timeout_stream_info_submenu_display(void *data);
+static void __interpret_stream_info_submenu(char *cmd);
 
 gboolean __timeout_resolution_submenu_display(void *data)
 {
@@ -119,31 +126,158 @@ static void __interpret_resolution_submenu(char *cmd)
 	return;
 }
 
+gboolean __timeout_stream_info_submenu_display(void *data)
+{
+	__display_stream_info_submenu();
+	return FALSE;
+}
+
+static void __display_stream_info_submenu(void)
+{
+	g_print("\n");
+	g_print("**********************************************************************\n");
+	g_print("     Getting negotiated audio and video information \n");
+	g_print("**********************************************************************\n");
+	g_print("1 : video codec\n");
+	g_print("2 : video resolution\n");
+	g_print("3 : video frame rate\n");
+	g_print("4 : audio codec\n");
+	g_print("5 : audio channel\n");
+	g_print("6 : audio sample rate\n");
+	g_print("7 : audio bitwidth\n");
+	g_print("g : Go back to main menu \n");
+	g_print("**********************************************************************\n");
+
+}
+
+static void __interpret_stream_info_submenu(char *cmd)
+{
+	int ret = SCMIRRORING_ERROR_NONE;
+	if (strncmp(cmd, "1", 1) == 0) {
+
+		scmirroring_video_codec_e codec;
+		ret = scmirroring_sink_get_negotiated_video_codec(g_scmirroring, &codec);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("Error : scmirroring_sink_get_negotiated_video_codec fail[%d]\n", ret);
+		} else {
+			switch (codec) {
+				case SCMIRRORING_VIDEO_CODEC_H264:
+					g_print("video codec : H264[%d]\n", codec);
+					break;
+				default:
+					g_print("video codec : NONE[%d]\n", codec);
+					break;
+			}
+		}
+
+	} else if (strncmp(cmd, "2", 1) == 0) {
+
+		int width, height;
+		ret = scmirroring_sink_get_negotiated_video_resolution(g_scmirroring, &width, &height);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("Error : scmirroring_sink_get_negotiated_video_resolution fail[%d]\n", ret);
+		} else {
+			g_print("video resoltuion : width[%d], height[%d]\n", width, height);
+		}
+
+	} else if (strncmp(cmd, "3", 1) == 0) {
+
+		int frame_rate;
+		ret = scmirroring_sink_get_negotiated_video_frame_rate(g_scmirroring, &frame_rate);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("Error : scmirroring_sink_get_negotiated_video_frame_rate fail[%d]\n", ret);
+		} else {
+			g_print("video frame rate[%d]\n", frame_rate);
+		}
+
+	} else if (strncmp(cmd, "4", 1) == 0) {
+		scmirroring_audio_codec_e codec;
+		ret = scmirroring_sink_get_negotiated_audio_codec(g_scmirroring, &codec);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("Error : scmirroring_sink_get_negotiated_audio_codec fail[%d]\n", ret);
+		} else {
+			switch (codec) {
+				case SCMIRRORING_AUDIO_CODEC_AAC:
+					g_print("audio codec : AAC[%d]\n", codec);
+					break;
+				case SCMIRRORING_AUDIO_CODEC_AC3:
+					g_print("audio codec : AC3[%d]\n", codec);
+					break;
+				case SCMIRRORING_AUDIO_CODEC_LPCM:
+					g_print("audio codec : LPCM[%d]\n", codec);
+					break;
+				default:
+					g_print("audio codec : NONE[%d]\n", codec);
+					break;
+			}
+		}
+
+	} else if (strncmp(cmd, "5", 1) == 0) {
+		int channel;
+		ret = scmirroring_sink_get_negotiated_audio_channel(g_scmirroring, &channel);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("Error : scmirroring_sink_get_negotiated_audio_channel fail[%d]\n", ret);
+		} else {
+			g_print("audio channel[%d]\n", channel);
+		}
+
+	} else if (strncmp(cmd, "6", 1) == 0) {
+		int sample_rate;
+		ret = scmirroring_sink_get_negotiated_audio_sample_rate(g_scmirroring, &sample_rate);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("Error : scmirroring_sink_get_negotiated_audio_sample_rate fail[%d]\n", ret);
+		} else {
+			g_print("audio sample rate[%d]\n", sample_rate);
+		}
+
+	} else if (strncmp(cmd, "7", 1) == 0) {
+		int bitwidth;
+		ret = scmirroring_sink_get_negotiated_audio_bitwidth(g_scmirroring, &bitwidth);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("Error : scmirroring_sink_get_negotiated_audio_bitwidth fail[%d]\n", ret);
+		} else {
+			g_print("audio bitwidth[%d]\n", bitwidth);
+		}
+
+	} else if (strncmp(cmd, "g", 1) == 0) {
+		g_print("go back to main menu\n");
+		g_menu = MAIN_MENU;
+		g_timeout_add(100, __timeout_menu_display, 0);
+		return;
+	}
+
+	g_timeout_add(100, __timeout_stream_info_submenu_display, 0);
+
+	return;
+}
+
 static void scmirroring_sink_state_callback(scmirroring_error_e error_code, scmirroring_sink_state_e state, void *user_data)
 {
-	g_print("Received Callback error code[%d] state[%d]", error_code, state);
+	g_print("Received Callback error code[%d]", error_code);
 
 	if (state == SCMIRRORING_SINK_STATE_NONE)
-		g_print(" state[%d] SCMIRRORING_SINK_STATE_NONE", state);
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_NONE\n", state);
 	else if (state == SCMIRRORING_SINK_STATE_NULL)
-		g_print(" st ate[%d] (state == SCMIRRORING_SINK_STATE_NULL)", state);
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_NULL\n", state);
 	else if (state == SCMIRRORING_SINK_STATE_PREPARED)
-		g_print(" state[%d] SCMIRRORING_SINK_STATE_PREPARED", state);
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_PREPARED\n", state);
 	else if (state == SCMIRRORING_SINK_STATE_CONNECTED) {
-		g_print(" state[%d] SCMIRRORING_SINK_STATE_CONNECTED", state);
+
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_CONNECTED\n", state);
 		if (scmirroring_sink_start(g_scmirroring) != SCMIRRORING_ERROR_NONE)
 			g_print("scmirroring_sink_start fail");
+
 	} else if (state == SCMIRRORING_SINK_STATE_PLAYING)
-		g_print(" state[%d] SCMIRRORING_SINK_STATE_PLAYING", state);
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_PLAYING\n", state);
 	else if (state == SCMIRRORING_SINK_STATE_PAUSED)
-		g_print(" state[%d] SCMIRRORING_SINK_STATE_PAUSED", state);
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_PAUSED\n", state);
 	else if (state == SCMIRRORING_SINK_STATE_DISCONNECTED) {
-		g_print(" state[%d] SCMIRRORING_SINK_STATE_DISCONNECTED", state);
+		g_print(" state[%d] SCMIRRORING_SINK_STATE_DISCONNECTED\n", state);
 		if (scmirroring_sink_unprepare(g_scmirroring) != SCMIRRORING_ERROR_NONE) {
-			g_print("scmirroring_sink_unprepare fail");
+			g_print("scmirroring_sink_unprepare fail\n");
 		}
 		if (scmirroring_sink_destroy(g_scmirroring) != SCMIRRORING_ERROR_NONE) {
-			g_print("scmirroring_sink_destroy fail");
+			g_print("scmirroring_sink_destroy fail\n");
 		}
 		__quit_program();
 	} else
@@ -178,6 +312,7 @@ static void __displaymenu(void)
 	g_print("D : Disconnect\n");
 	g_print("T : desTroy\n");
 	g_print("L : Setting resolution\n");
+	g_print("G : Getting negotiated audio and video information\n");
 	g_print("q : quit\n");
 	g_print("-----------------------------------------------------------------------------------------\n");
 }
@@ -287,7 +422,7 @@ void _connection_cb(int error_code, wifi_direct_connection_state_e connection_st
 	g_print("Connected [ error : %d connection state : %d mac_addr:%s ]\n", error_code, connection_state, mac_address);
 
 	if (connection_state == WIFI_DIRECT_CONNECTION_REQ) {
-		ret = wifi_direct_accept_connection(mac_address);
+		ret = wifi_direct_accept_connection((char *)mac_address);
 		if (ret != WIFI_DIRECT_ERROR_NONE) {
 			g_print("Error : wifi_direct_accept_connection failed : %d\n", ret);
 		}
@@ -317,8 +452,10 @@ void _connection_cb(int error_code, wifi_direct_connection_state_e connection_st
 static void __interpret(char *cmd)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
+#ifndef TEST_WITH_WIFI_DIRECT
 	gchar **value;
 	value = g_strsplit(cmd, " ", 0);
+#endif
 	if (strncmp(cmd, "D", 1) == 0) {
 		g_print("Disconnect\n");
 		ret = scmirroring_sink_disconnect(g_scmirroring);
@@ -337,6 +474,10 @@ static void __interpret(char *cmd)
 	} else if (strncmp(cmd, "L", 1) == 0) {
 		g_menu = SUBMENU_RESOLUTION;
 		g_timeout_add(100, __timeout_resolution_submenu_display, 0);
+		return;
+	} else if (strncmp(cmd, "G", 1) == 0) {
+		g_menu = SUBMENU_GETTING_STREAM_INFO;
+		g_timeout_add(100, __timeout_stream_info_submenu_display, 0);
 		return;
 	}
 #ifndef TEST_WITH_WIFI_DIRECT
@@ -378,6 +519,8 @@ gboolean __input(GIOChannel *channel)
 		__interpret(buf);
 	else if (g_menu == SUBMENU_RESOLUTION)
 		__interpret_resolution_submenu(buf);
+	else if (g_menu == SUBMENU_GETTING_STREAM_INFO)
+		__interpret_stream_info_submenu(buf);
 
 	return TRUE;
 }

@@ -235,8 +235,8 @@ gboolean __scmirroring_src_read_cb(GIOChannel *src, GIOCondition condition, gpoi
 			scmirroring_debug("Read %d bytes", read);
 		}
 
-		int i = 0;
-		int idx = 0;
+		gsize i = 0;
+		gsize idx = 0;
 
 		/* Handling multiple response like "CMD1\0CMD2\0CMD3\0" */
 		for (i = 0; i < read; i++) {
@@ -324,6 +324,8 @@ static int __scmirroring_src_send_set_reso(scmirroring_src_h scmirroring)
 
 int scmirroring_src_create(scmirroring_src_h *scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 	scmirroring_src_s *_scmirroring = NULL;
 
@@ -355,6 +357,8 @@ int scmirroring_src_create(scmirroring_src_h *scmirroring)
 
 int scmirroring_src_set_connection_mode(scmirroring_src_h scmirroring, scmirroring_connection_mode_e connect_mode)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
@@ -381,6 +385,8 @@ int scmirroring_src_set_connection_mode(scmirroring_src_h scmirroring, scmirrori
 
 int scmirroring_src_set_state_changed_cb(scmirroring_src_h scmirroring, scmirroring_state_cb callback, void *user_data)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
@@ -407,6 +413,8 @@ int scmirroring_src_set_state_changed_cb(scmirroring_src_h scmirroring, scmirror
 
 int scmirroring_src_unset_state_changed_cb(scmirroring_src_h scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
@@ -429,6 +437,8 @@ int scmirroring_src_unset_state_changed_cb(scmirroring_src_h scmirroring)
 
 int scmirroring_src_set_ip_and_port(scmirroring_src_h scmirroring, const char *ip, const char *port)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
@@ -458,6 +468,8 @@ int scmirroring_src_set_ip_and_port(scmirroring_src_h scmirroring, const char *i
 
 int scmirroring_src_set_resolution(scmirroring_src_h scmirroring, scmirroring_resolution_e resolution)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
@@ -484,6 +496,8 @@ int scmirroring_src_set_resolution(scmirroring_src_h scmirroring, scmirroring_re
 
 int scmirroring_src_connect(scmirroring_src_h scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 	int retry = 0;
 	struct sockaddr_un serv_addr;
@@ -526,6 +540,7 @@ int scmirroring_src_connect(scmirroring_src_h scmirroring)
 	memset(&serv_addr, 0, sizeof(struct sockaddr_un));
 	serv_addr.sun_family = AF_UNIX;
 	strncpy(serv_addr.sun_path, _scmirroring->sock_path, sizeof(serv_addr.sun_path));
+	serv_addr.sun_path[sizeof(serv_addr.sun_path) - 1] = '\0';
 
 try:
 	scmirroring_debug("Trying to connect to the miracast server");
@@ -586,6 +601,8 @@ try:
 
 int scmirroring_src_disconnect(scmirroring_src_h scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
@@ -615,6 +632,8 @@ int scmirroring_src_disconnect(scmirroring_src_h scmirroring)
 
 int scmirroring_src_start(scmirroring_src_h scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
 
@@ -633,6 +652,8 @@ int scmirroring_src_start(scmirroring_src_h scmirroring)
 
 int scmirroring_src_pause(scmirroring_src_h scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
 
@@ -651,6 +672,8 @@ int scmirroring_src_pause(scmirroring_src_h scmirroring)
 
 int scmirroring_src_resume(scmirroring_src_h scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
 
@@ -669,6 +692,8 @@ int scmirroring_src_resume(scmirroring_src_h scmirroring)
 
 int scmirroring_src_stop(scmirroring_src_h scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
 
@@ -687,6 +712,8 @@ int scmirroring_src_stop(scmirroring_src_h scmirroring)
 
 int scmirroring_src_destroy(scmirroring_src_h scmirroring)
 {
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
 	int ret = SCMIRRORING_ERROR_NONE;
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
 

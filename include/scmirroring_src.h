@@ -17,7 +17,7 @@
 #ifndef __TIZEN_MEDIA_SCMIRRORING_SRC_H__
 #define __TIZEN_MEDIA_SCMIRRORING_SRC_H__
 
-#include <scmirroring_type.h>
+#include <scmirroring_internal.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,13 +29,7 @@ extern "C" {
  */
 
 /**
- * @addtogroup CAPI_MEDIA_SCREEN_MIRRORING_SRC_MODULE
- * @{
- */
-
-/**
  * @brief Creates screen mirroring source handle.
- * @since_tizen 2.4
  * @remarks You must release @a scmirroring_src using scmirroring_src_destroy().
  *
  * @param[out] scmirroring_src The handle to screen mirroring source
@@ -53,8 +47,6 @@ int scmirroring_src_create(scmirroring_src_h *scmirroring_src);
 /**
  * @brief Registers user callback to get status of screen mirroring.
  * @details This function registers user callback and this callback is called when each status is changed.
- *
- * @since_tizen 2.4
  *
  * @param[in] scmirroring_src The handle to screen mirroring source
  * @param[in] callback The callback function to invoke
@@ -77,8 +69,6 @@ int scmirroring_src_set_state_changed_cb(scmirroring_src_h scmirroring_src, scmi
 /**
  * @brief Sets connection mode of screen mirroring.
  *
- * @since_tizen 2.4
- *
  * @param[in] scmirroring_src The handle to screen mirroring source
  * @param[in] connection_mode connection mode of screen mirroring
  *
@@ -98,8 +88,6 @@ int scmirroring_src_set_connection_mode(scmirroring_src_h scmirroring_src, scmir
 
 /**
  * @brief Sets IP address and port number of screen mirroring source.
- *
- * @since_tizen 2.4
  *
  * @param[in] scmirroring_src The handle to screen mirroring source
  * @param[in] ip Server IP address
@@ -122,8 +110,6 @@ int scmirroring_src_set_ip_and_port(scmirroring_src_h scmirroring_src, const cha
 /**
  * @brief Sets resolution of screen mirroring source.
  *
- * @since_tizen 2.4
- *
  * @param[in] scmirroring_src The handle to screen mirroring source
  * @param[in] resolution Resolution of screen mirroring source
  *
@@ -144,8 +130,6 @@ int scmirroring_src_set_resolution(scmirroring_src_h scmirroring_src, scmirrorin
 /**
  * @brief Connects to server for screen mirroring as source, asynchronously.
  * @details This function launches server and connects to the server for screen mirroring as source to command server to start/pause/resume/stop.
- *
- * @since_tizen 2.4
  *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
@@ -170,8 +154,6 @@ int scmirroring_src_connect(scmirroring_src_h scmirroring_src);
 /**
  * @brief Prepares screen mirroring as source.
  *
- * @since_tizen 2.4
- *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
  * @return @c 0 on success,
@@ -195,8 +177,6 @@ int scmirroring_src_prepare(scmirroring_src_h scmirroring_src);
 /**
  * @brief Starts screen mirroring, asynchronously.
  * @details This function starts screen mirroring, which means it starts to negotiate and stream RTP multimedia data.
- *
- * @since_tizen 2.4
  *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
@@ -229,8 +209,6 @@ int scmirroring_src_start(scmirroring_src_h scmirroring_src);
  * @brief Pauses screen mirroring, asynchronously.
  * @details This function pauses screen mirroring, which means it sends RTSP PAUSE trigger message to sink.
  *
- * @since_tizen 2.4
- *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
  * @return @c 0 on success,
@@ -256,8 +234,6 @@ int scmirroring_src_pause(scmirroring_src_h scmirroring_src);
  * @brief Resumes screen mirroring, asynchronously.
  * @details This function resumes screen mirroring, which means it sends RTSP PLAY message to sink.
  *
- * @since_tizen 2.4
- *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
  * @return @c 0 on success,
@@ -278,8 +254,6 @@ int scmirroring_src_resume(scmirroring_src_h scmirroring_src);
 /**
  * @brief Stops screen mirroring, asynchronously.
  * @details This function stops screen mirroring, which means it sends RTSP TEARDOWN trigger message to sink.
- *
- * @since_tizen 2.4
  *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
@@ -307,8 +281,6 @@ int scmirroring_src_stop(scmirroring_src_h scmirroring_src);
  * @brief Unprepares screen mirroring.
  * @details This function unprepares screen mirroring, which closes specific resources.
  *
- * @since_tizen 2.4
- *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
  * @return @c 0 on success,
@@ -331,8 +303,6 @@ int scmirroring_src_unprepare(scmirroring_src_h scmirroring_src);
 
 /**
  * @brief Disconnects server for screen mirroring.
- *
- * @since_tizen 2.4
  *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
@@ -359,8 +329,6 @@ int scmirroring_src_disconnect(scmirroring_src_h scmirroring_src);
 /**
  * @brief Unregisters the callback function user registered
  *
- * @since_tizen 2.4
- *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
  * @return @c 0 on success,
@@ -381,8 +349,6 @@ int scmirroring_src_unset_state_changed_cb(scmirroring_src_h scmirroring_src);
 
 /**
  * @brief Destroys server and screen mirroring source handle.
- *
- * @since_tizen 2.4
  *
  * @param[in] scmirroring_src The handle to screen mirroring source
  *
@@ -405,9 +371,5 @@ int scmirroring_src_destroy(scmirroring_src_h scmirroring_src);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-/**
- * @}
- */
 
 #endif /* __TIZEN_MEDIA_SCMIRRORING_SRC_H__ */

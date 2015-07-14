@@ -71,6 +71,7 @@ typedef enum __scmirroring_ini_session_mode {
 typedef struct __scmirroring_src_ini {
 	/* general */
 	SCMIRRORING_INI_VSRC_ELEMENT videosrc_element;
+	gchar name_of_video_encoder[SCMIRRORING_SRC_INI_MAX_STRLEN];
 	gint session_mode;
 	SCMIRRORING_INI_VSINK_ELEMENT videosink_element;
 	gchar name_of_video_converter[SCMIRRORING_SRC_INI_MAX_STRLEN];
@@ -80,6 +81,9 @@ typedef struct __scmirroring_src_ini {
 	gint mtu_size;
 
 	gchar name_of_audio_device[SCMIRRORING_SRC_INI_MAX_STRLEN];
+	gchar name_of_audio_encoder_aac[SCMIRRORING_SRC_INI_MAX_STRLEN];
+	gchar name_of_audio_encoder_ac3[SCMIRRORING_SRC_INI_MAX_STRLEN];
+	guint audio_codec;
 	gint audio_latency_time;
 	gint audio_buffer_time;
 	gint audio_do_timestamp;
@@ -103,6 +107,7 @@ typedef struct __scmirroring_src_ini {
 #define DEFAULT_PROVIDE_CLOCK				TRUE
 #define DEFAULT_VIDEOSINK				SCMIRRORING_INI_VSINK_XVIMAGESINK
 #define DEFAULT_VIDEOSRC				SCMIRRORING_INI_VSRC_XVIMAGESRC
+#define DEFAULT_VIDEOENC				"omxh264enc"
 #define DEFAULT_VIDEO_BITRATE 				3072000 /* bps */
 #define DEFAULT_MTU_SIZE        1400 /* bytes */
 #define DEFAULT_SESSION_MODE				0
@@ -111,6 +116,9 @@ typedef struct __scmirroring_src_ini {
 #define DEFAULT_VIDEO_CONVERTER				""
 /* hw accel */
 #define DEFAULT_AUDIO_DEVICE_NAME "alsa_output.0.analog-stereo.monitor"
+#define DEFAULT_AUDIOENC_AAC				"avenc_aac"
+#define DEFAULT_AUDIOENC_AC3				"avenc_ac3"
+#define DEFAULT_AUDIO_CODEC	2
 #define DEFAULT_AUDIO_LATENCY_TIME	10000
 #define DEFAULT_AUDIO_BUFFER_TIME	200000
 #define DEFAULT_AUDIO_DO_TIMESTAMP	0
