@@ -185,6 +185,41 @@
  *    <td>CONNECTED/ PLAYING/ PAUSED</td>
  *    <td></td>
  * </tr>
+ * <tr>
+ *    <td>scmirroring_sink_get_negotiated_video_codec()</td>
+ *    <td>CONNECTED/ PLAYING/ PAUSED</td>
+ *    <td>This function must be called after scmirroring_sink_connect().</td>
+ * </tr>
+ * <tr>
+ *    <td>scmirroring_sink_get_negotiated_video_resolution()</td>
+ *    <td>CONNECTED/ PLAYING/ PAUSED</td>
+ *    <td>This function must be called after scmirroring_sink_connect().</td>
+ * </tr>
+ * <tr>
+ *    <td>scmirroring_sink_get_negotiated_video_frame_rate()</td>
+ *    <td>CONNECTED/ PLAYING/ PAUSED</td>
+ *    <td>This function must be called after scmirroring_sink_connect().</td>
+ * </tr>
+ * <tr>
+ *    <td>scmirroring_sink_get_negotiated_audio_codec()</td>
+ *    <td>CONNECTED/ PLAYING/ PAUSED</td>
+ *    <td>This function must be called after scmirroring_sink_connect().</td>
+ * </tr>
+ * <tr>
+ *    <td>scmirroring_sink_get_negotiated_audio_channel()</td>
+ *    <td>CONNECTED/ PLAYING/ PAUSED</td>
+ *    <td>This function must be called after scmirroring_sink_connect().</td>
+ * </tr>
+ * <tr>
+ *    <td>scmirroring_sink_get_negotiated_audio_sample_rate()</td>
+ *    <td>CONNECTED/ PLAYING/ PAUSED</td>
+ *    <td>This function must be called after scmirroring_sink_connect().</td>
+ * </tr>
+ * <tr>
+ *    <td>scmirroring_sink_get_negotiated_audio_bitwidth()</td>
+ *    <td>CONNECTED/ PLAYING/ PAUSED</td>
+ *    <td>This function must be called after scmirroring_sink_connect().</td>
+ * </tr>
  * </table></div>
  *
  * @subsection CAPI_MEDIA_SCREEN_MIRRORING_SINK_LIFE_CYCLE_ASYNCHRONOUS_OPERATIONS Asynchronous Operations

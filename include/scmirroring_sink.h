@@ -52,7 +52,7 @@ extern "C" {
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
- * @post The screen mirroring state will be #SCMIRRORING_STATE_NULL
+ * @post The screen mirroring state will be #SCMIRRORING_SINK_STATE_NULL
  *
  * @see scmirroring_sink_destroy()
  */
@@ -358,7 +358,7 @@ int scmirroring_sink_disconnect(scmirroring_sink_h scmirroring_sink);
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
  * @pre Register user callback by calling scmirroring_sink_set_state_changed_cb().
  * @pre Call scmirroring_sink_prepare()
- * @post The screen mirroring state will be #SCMIRRORING_STATE_NULL
+ * @post The screen mirroring state will be #SCMIRRORING_SINK_STATE_NULL
  *
  * @see scmirroring_sink_create()
  * @see scmirroring_sink_set_state_changed_cb()
@@ -405,7 +405,7 @@ int scmirroring_sink_unset_state_changed_cb(scmirroring_sink_h scmirroring_sink)
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
  * @pre Create a screen mirroring sink handle by calling scmirroring_sink_create().
- * @pre The screen mirroring state should be #SCMIRRORING_STATE_NULL
+ * @pre The screen mirroring state should be #SCMIRRORING_SINK_STATE_NULL
  *
  * @see scmirroring_sink_create()
  */
