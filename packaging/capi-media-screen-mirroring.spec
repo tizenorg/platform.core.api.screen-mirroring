@@ -3,7 +3,7 @@ Summary:    A screen mirroring library in Tizen C API
 Version:    0.1.40
 Release:    0
 Group:      Multimedia/API
-License:    Apache License, Version 2.0
+License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(dlog)
