@@ -202,7 +202,9 @@ int __miracast_server_send_resp(MiracastServer *server, const gchar *cmd)
 	_cmd[strlen(_cmd)] = '\0';
 
 	if (write(client_sock, _cmd, strlen(_cmd) + 1) != ((int)(strlen(_cmd) + 1))) {
-		scmirroring_error("sendto failed [%s]", strerror(errno));
+		char buf[255] = {0, };
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("sendto failed [%s]", buf);
 		ret = SCMIRRORING_ERROR_INVALID_OPERATION;
 	} else {
 		scmirroring_debug("Sent response [%s] successfully", _cmd);
@@ -354,10 +356,12 @@ static gboolean __miracast_server_ready_channel(int *sockfd)
 	int i;
 	gboolean bind_success = FALSE;
 	struct sockaddr_un serv_addr;
+	char buf[255] = {0, };
 
 	/* Create a TCP socket */
 	if ((sock = socket(PF_FILE, SOCK_STREAM, 0)) < 0) {
-		scmirroring_error("socket failed: %s", strerror(errno));
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("socket failed: %s", buf);
 		return FALSE;
 	}
 
@@ -377,7 +381,8 @@ static gboolean __miracast_server_ready_channel(int *sockfd)
 	}
 
 	if (bind_success == false) {
-		scmirroring_error("bind failed : %s %d_", strerror(errno), errno);
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("bind failed : %s %d_", buf, errno);
 		close(sock);
 		return FALSE;
 	}
@@ -386,16 +391,21 @@ static gboolean __miracast_server_ready_channel(int *sockfd)
 
 	/* Listening */
 	if (listen(sock, SOMAXCONN) < 0) {
-		scmirroring_error("listen failed : %s", strerror(errno));
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("listen failed : %s", buf);
 		close(sock);
 		return FALSE;
 	}
 
 	/*change permission of sock file*/
-	if (chmod(MEDIA_IPC_PATH, 0770) < 0)
-		scmirroring_error("chmod failed [%s]", strerror(errno));
-	if (chown(MEDIA_IPC_PATH, 200, 5000) < 0)
-		scmirroring_error("chown failed [%s]", strerror(errno));
+	if (chmod(MEDIA_IPC_PATH, 0770) < 0) {
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("chmod failed [%s]", buf);
+	}
+	if (chown(MEDIA_IPC_PATH, 200, 5000) < 0) {
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("chown failed [%s]", buf);
+	}
 
 	scmirroring_debug("Listening...");
 	*sockfd = sock;
@@ -732,7 +742,9 @@ int __miracast_server_accept(int serv_sock, int *client_sock)
 
 	client_addr_len = sizeof(client_addr);
 	if ((sockfd = accept(serv_sock, (struct sockaddr *)&client_addr, &client_addr_len)) < 0) {
-		scmirroring_error("accept failed : %s", strerror(errno));
+		char buf[255] = {0, };
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("accept failed : %s", buf);
 		*client_sock  = -1;
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
@@ -813,7 +825,9 @@ gboolean __miracast_server_read_cb(GIOChannel *src,
 	GIOChannel *channel = NULL;
 	channel = g_io_channel_unix_new(client_sock);
 	if (channel == NULL) {
-		scmirroring_error("g_io_channel_unix_new failed: %s", strerror(errno));
+		char buf[255] = {0, };
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("g_io_channel_unix_new failed: %s", buf);
 	}
 
 	/* Create new channel to watch udp socket */

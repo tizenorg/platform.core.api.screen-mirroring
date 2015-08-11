@@ -72,7 +72,9 @@ static int __scmirroring_src_send_cmd_to_server(scmirroring_src_s *scmirroring, 
 	_cmd[strlen(_cmd)] = '\0';
 
 	if (write(scmirroring->sock, _cmd, strlen(_cmd) + 1) != (signed int) strlen(_cmd) + 1) {
-		scmirroring_error("sendto failed [%s]", strerror(errno));
+		char buf[255] = {0, };
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("sendto failed [%s]", buf);
 		ret = SCMIRRORING_ERROR_INVALID_OPERATION;
 	} else {
 		scmirroring_debug("Sent message [%s] successfully", _cmd);
@@ -504,6 +506,7 @@ int scmirroring_src_connect(scmirroring_src_h scmirroring)
 	int sock = -1;
 	GIOChannel *channel = NULL;
 	struct timeval tv_timeout = { TIMEOUT_SEC, 0 };
+	char buf[255] = {0, };
 
 	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
 
@@ -515,19 +518,22 @@ int scmirroring_src_connect(scmirroring_src_h scmirroring)
 
 	/*Create TCP Socket*/
 	if ((sock = socket(PF_FILE, SOCK_STREAM, 0)) < 0) {
-		scmirroring_error("socket failed: %s", strerror(errno));
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("socket failed: %s", buf);
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
 	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv_timeout, sizeof(tv_timeout)) == -1) {
-		scmirroring_error("setsockopt failed: %s", strerror(errno));
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("setsockopt failed: %s", buf);
 		close(sock);
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
 	channel = g_io_channel_unix_new(sock);
 	if (channel == NULL) {
-		scmirroring_error("g_io_channel_unix_new failed: %s", strerror(errno));
+		strerror_r(errno, buf, sizeof(buf));
+		scmirroring_error("g_io_channel_unix_new failed: %s", buf);
 	}
 
 	g_io_channel_set_flags(channel, G_IO_FLAG_NONBLOCK, NULL);
@@ -564,7 +570,8 @@ try:
 				goto try;
 			}
 
-			scmirroring_error("Connect error : %s", strerror(errno));
+			strerror_r(errno, buf, sizeof(buf));
+			scmirroring_error("Connect error : %s", buf);
 			close(_scmirroring->sock);
 			_scmirroring->sock = -1;
 			return SCMIRRORING_ERROR_INVALID_OPERATION;
