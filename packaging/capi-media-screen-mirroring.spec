@@ -1,6 +1,6 @@
 Name:       capi-media-screen-mirroring
 Summary:    A screen mirroring library in Tizen C API
-Version:    0.1.40
+Version:    0.1.42
 Release:    0
 Group:      Multimedia/API
 License:    Apache-2.0
@@ -73,6 +73,7 @@ cp -rf config/scmirroring_src.ini %{buildroot}/usr/etc/scmirroring_src.ini
 %files
 %manifest capi-media-screen-mirroring.manifest
 %{_libdir}/libcapi-media-screen-mirroring.so*
+%{_libdir}/libmiracast_server_lib.so
 %{_datadir}/dbus-1/system-services/org.tizen.scmirroring.server.service
 #License
 %{_datadir}/license/%{name}
@@ -87,5 +88,4 @@ cp -rf config/scmirroring_src.ini %{buildroot}/usr/etc/scmirroring_src.ini
 %{_includedir}/media/scmirroring_internal.h
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/libcapi-media-screen-mirroring.so
-
-
+%{_libdir}/libmiracast_server_lib.so

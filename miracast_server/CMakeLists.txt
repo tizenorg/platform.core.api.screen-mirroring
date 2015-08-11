@@ -13,11 +13,11 @@ ENDFOREACH(flag)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS} -Wall -Werror -pie")
 
 aux_source_directory(. sources)
-FOREACH(src ${sources})
-    GET_FILENAME_COMPONENT(src_name ${src} NAME_WE)
-    MESSAGE("${src_name}")
-    ADD_EXECUTABLE(${src_name} ${src})
-    TARGET_LINK_LIBRARIES(${src_name} ${fw_name} ${${fw_test}_LDFLAGS})
-ENDFOREACH()
 
-INSTALL(TARGETS ${src_name} DESTINATION /usr/bin)
+ADD_LIBRARY(miracast_server_lib SHARED miracast_server_impl.c)
+TARGET_LINK_LIBRARIES(miracast_server_lib ${fw_name} ${${fw_test}_LDFLAGS})
+INSTALL(TARGETS miracast_server_lib DESTINATION ${LIB_INSTALL_DIR})
+
+ADD_EXECUTABLE(miracast_server miracast_server.c)
+TARGET_LINK_LIBRARIES(miracast_server ${fw_name} ${${fw_test}_LDFLAGS} miracast_server_lib)
+INSTALL(TARGETS miracast_server DESTINATION /usr/bin)
