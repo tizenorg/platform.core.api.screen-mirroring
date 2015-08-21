@@ -29,18 +29,22 @@ static void __scmirroring_ini_check_ini_status(void);
 
 /* macro */
 #define SCMIRRORING_INI_GET_STRING(x_item, x_ini, x_default) \
-	do { \
-		gchar *str = iniparser_getstring(dict, x_ini, (char *)x_default); \
-		\
-		if (str && \
-		     (strlen(str) > 1) && \
-		     (strlen(str) < SCMIRRORING_SRC_INI_MAX_STRLEN)) { \
-			strcpy(x_item, str); \
-		} \
-		else { \
-			strcpy(x_item, x_default); \
-		} \
-	} while (0);
+do \
+{ \
+	gchar* str = NULL; \
+	gint length = 0; \
+	str = iniparser_getstring(dict, x_ini, (char *)x_default); \
+	if ( str ) { \
+		length = strlen (str); \
+		if(( length > 1 ) && ( length < SCMIRRORING_SRC_INI_MAX_STRLEN ) ) \
+			strncpy ( x_item, str, length + 1); \
+		else \
+			strncpy ( x_item, x_default, SCMIRRORING_SRC_INI_MAX_STRLEN - 1); \
+	} \
+	else { \
+		strncpy ( x_item, x_default, SCMIRRORING_SRC_INI_MAX_STRLEN - 1); \
+	} \
+} while (0);
 
 
 int
@@ -162,7 +166,7 @@ scmirroring_src_ini_load(void)
 		g_scmirroring_src_ini.generate_dot = DEFAULT_GENERATE_DOT;
 		g_scmirroring_src_ini.provide_clock = DEFAULT_PROVIDE_CLOCK;
 
-		strcpy(g_scmirroring_src_ini.name_of_audio_device, DEFAULT_AUDIO_DEVICE_NAME);
+		strncpy(g_scmirroring_src_ini.name_of_audio_device, DEFAULT_AUDIO_DEVICE_NAME, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
 		g_scmirroring_src_ini.audio_latency_time = DEFAULT_AUDIO_LATENCY_TIME;
 		g_scmirroring_src_ini.audio_buffer_time = DEFAULT_AUDIO_BUFFER_TIME;
 		g_scmirroring_src_ini.audio_do_timestamp = DEFAULT_AUDIO_DO_TIMESTAMP;
@@ -174,15 +178,14 @@ scmirroring_src_ini_load(void)
 		g_scmirroring_src_ini.hdcp_enabled = DEFAULT_HDCP_ENABLED;
 		g_scmirroring_src_ini.uibc_gen_capability = DEFAULT_UIBC_GEN_CAPABILITY;
 
-		strcpy(g_scmirroring_src_ini.name_of_video_converter, DEFAULT_VIDEO_CONVERTER);
+		strncpy(g_scmirroring_src_ini.name_of_video_converter, DEFAULT_VIDEO_CONVERTER, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
 
 
-		strcpy(g_scmirroring_src_ini.gst_param[0], DEFAULT_GST_PARAM);
-		strcpy(g_scmirroring_src_ini.gst_param[1], DEFAULT_GST_PARAM);
-		strcpy(g_scmirroring_src_ini.gst_param[2], DEFAULT_GST_PARAM);
-		strcpy(g_scmirroring_src_ini.gst_param[3], DEFAULT_GST_PARAM);
-		strcpy(g_scmirroring_src_ini.gst_param[4], DEFAULT_GST_PARAM);
-
+		strncpy(g_scmirroring_src_ini.gst_param[0], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
+		strncpy(g_scmirroring_src_ini.gst_param[1], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
+		strncpy(g_scmirroring_src_ini.gst_param[2], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
+		strncpy(g_scmirroring_src_ini.gst_param[3], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
+		strncpy(g_scmirroring_src_ini.gst_param[4], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
 		g_scmirroring_src_ini.dump_ts = DEFAULT_DUMP_TS;
 
 	}

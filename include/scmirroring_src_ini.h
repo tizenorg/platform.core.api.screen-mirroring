@@ -32,6 +32,7 @@ extern "C" {
 #define SCMIRRORING_SRC_INI() scmirroring_src_ini_get_structure()
 
 #define SCMIRRORING_SRC_INI_MAX_STRLEN	80
+#define SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN 256
 
 typedef enum __scmirroring_ini_videosink_element {
 	SCMIRRORING_INI_VSINK_V4l2SINK = 0,
@@ -93,7 +94,7 @@ typedef struct __scmirroring_src_ini {
 	gint hdcp_enabled;
 	guint8 uibc_gen_capability;
 
-	gchar gst_param[SCMIRRORING_SRC_INI_GST_START_PARAMS_NUM][256];
+	gchar gst_param[SCMIRRORING_SRC_INI_GST_START_PARAMS_NUM][SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN];
 	gboolean disable_segtrap;
 
 	gint dump_ts;
