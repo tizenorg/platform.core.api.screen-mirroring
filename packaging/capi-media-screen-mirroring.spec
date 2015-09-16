@@ -16,6 +16,10 @@ BuildRequires:  pkgconfig(gstreamer-rtsp-server-1.0)
 BuildRequires:  pkgconfig(capi-network-wifi-direct)
 BuildRequires:  pkgconfig(mm-wfd)
 BuildRequires:  pkgconfig(iniparser)
+BuildRequires:  pkgconfig(appcore-efl)
+BuildRequires:  pkgconfig(elementary)
+BuildRequires:  pkgconfig(evas)
+
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -37,7 +41,8 @@ Requires: %{name} = %{version}-%{release}
 %build
 export CFLAGS+=" -Wextra -Wno-array-bounds"
 export CFLAGS+=" -Wno-ignored-qualifiers -Wno-unused-parameter -Wshadow"
-export CFLAGS+=" -Wwrite-strings -Wswitch-default"
+export CFLAGS+=" -Wwrite-strings"
+#export CFLAGS+="-Wswitch-default"
 
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 
