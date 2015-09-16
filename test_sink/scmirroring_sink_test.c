@@ -19,20 +19,41 @@
 #include <glib/gprintf.h>
 #include <scmirroring_sink.h>
 #include <wifi-direct.h>
+#include <wifi-direct-internal.h>
 
-/*#define TEST_WITH_WIFI_DIRECT*/
+#include <Elementary.h>
+#include <appcore-efl.h>
 
 #define MAX_STRING_LEN    2048
 #define SINKTEST_EXECUTE_DELAY	5000
 #define MAIN_MENU 0
 #define SUBMENU_RESOLUTION 1
 #define SUBMENU_GETTING_STREAM_INFO 2
+#define SUBMENU_SETTING_SINK 3
+
+#define TEST_WITH_WIFI_DIRECT
+
+#define PACKAGE "screen_mirroring_sink_test"
+static int app_create(void *data);
+static int app_terminate(void *data);
+static Evas_Object* _create_win(const char *name);
+static Evas_Object *create_evas_image_object(Evas_Object *eo_parent);
+static void _win_del(void *data, Evas_Object *obj, void *event);
+static gboolean _scmirroring_start_jobs(gpointer data);
+
+struct appcore_ops ops = {
+        .create = app_create,
+        .terminate = app_terminate,
+};
+static Evas_Object* g_evas;
+static Evas_Object* g_eo = NULL;
 
 scmirroring_sink_h g_scmirroring = NULL;
 gint g_resolution = 0;
+gint g_sinktype = -1;
+
 gint g_menu = MAIN_MENU;
 
-GMainLoop *g_loop;
 #ifdef TEST_WITH_WIFI_DIRECT
 static int g_peer_cnt = 0;
 static char g_peer_ip[32];
@@ -46,6 +67,7 @@ gboolean __scmirroring_sink_start(gpointer data);
 static int __scmirroring_sink_create(gpointer data);
 #endif
 #ifdef TEST_WITH_WIFI_DIRECT
+static gboolean __start_wifi_display_connection();
 static gboolean __start_p2p_connection(gpointer data);
 static gboolean __disconnect_p2p_connection(void);
 #endif
@@ -61,6 +83,127 @@ static void __interpret_resolution_submenu(char *cmd);
 static void __display_stream_info_submenu(void);
 gboolean 	__timeout_stream_info_submenu_display(void *data);
 static void __interpret_stream_info_submenu(char *cmd);
+
+/* Submenu for setting sink type */
+gboolean __timeout_sink_submenu_display(void *data);
+static void __display_sink_submenu(void);
+static void __interpret_sink_submenu(char *cmd);
+
+static void _win_del(void *data, Evas_Object *obj, void *event)
+{
+	elm_exit();
+}
+
+
+static Evas_Object* _create_win(const char *name)
+{
+	Evas_Object *eo = NULL;
+
+	g_printf ("[%s][%d] name=%s\n", __func__, __LINE__, name);
+
+	eo = elm_win_add(NULL, name, ELM_WIN_BASIC);
+	if (eo)
+	{
+		elm_win_title_set(eo, name);
+		elm_win_borderless_set(eo, EINA_TRUE);
+		evas_object_smart_callback_add(eo, "delete,request",_win_del, NULL);
+		elm_win_autodel_set(eo, EINA_TRUE);
+	}
+	return eo;
+}
+
+static Evas_Object *create_evas_image_object(Evas_Object *eo_parent)
+{
+	if(!eo_parent) {
+		return NULL;
+	}
+	Evas *evas = evas_object_evas_get(eo_parent);
+	Evas_Object *eo = NULL;
+
+	eo = evas_object_image_add(evas);
+
+	return eo;
+}
+
+static int app_create(void *data)
+{
+
+	gboolean result = FALSE;
+
+	g_print("app_create enter");
+
+	Evas_Object *win = NULL;
+	/* create window */
+	win = _create_win(PACKAGE);
+	if (win == NULL)
+		return -1;
+	g_evas = win;
+
+	elm_win_activate(win);
+	evas_object_show(win);
+
+	result = _scmirroring_start_jobs((void *)NULL);
+	if(result != TRUE){
+		g_print("failed _scmirroring_start_jobs ");
+	}
+
+	g_print("app_create leave");
+
+	return result;
+
+}
+static int app_terminate(void *data)
+{
+
+  if (g_evas) {
+    evas_object_del(g_evas);
+    g_evas = NULL;
+  }
+  return 0;
+}
+
+gboolean __timeout_sink_submenu_display(void *data)
+{
+	__display_sink_submenu();
+	return FALSE;
+}
+
+static void __display_sink_submenu(void)
+{
+	g_print("\n");
+	g_print("**********************************************************************\n");
+	g_print("     Setting sink \n");
+	g_print("**********************************************************************\n");
+	g_print("1 : SCMIRRORING_DISPLAY_TYPE_OVERLAY with No Surface(DEFAULT)\n" );
+	g_print("2 : SCMIRRORING_DISPLAY_TYPE_OVERLAY with Surface\n" );
+	g_print("3 : SCMIRRORING_DISPLAY_TYPE_EVAS\n");
+	g_print("g : Go back to main menu \n");
+	g_print("**********************************************************************\n");
+
+}
+
+static void __interpret_sink_submenu(char *cmd)
+{
+	if (strncmp(cmd, "1", 1) == 0) {
+		g_print("SCMIRRORING_DISPLAY_TYPE_OVERLAY with No Surface\n");
+		g_sinktype = -1;
+	} else if (strncmp(cmd, "2", 1) == 0) {
+		g_print("SCMIRRORING_DISPLAY_TYPE_OVERLAY with Surface\n");
+		g_sinktype = SCMIRRORING_DISPLAY_TYPE_OVERLAY;
+	} else if (strncmp(cmd, "3", 1) == 0) {
+		g_print("SCMIRRORING_DISPLAY_TYPE_EVAS\n");
+		g_sinktype = SCMIRRORING_DISPLAY_TYPE_EVAS;
+	} else if (strncmp(cmd, "g", 1) == 0) {
+		g_print("go back to main menu\n");
+		g_menu = MAIN_MENU;
+		g_timeout_add(100, __timeout_menu_display, 0);
+		return;
+	}
+
+	g_print("sink type : %d\n", g_sinktype);
+	g_timeout_add(100, __timeout_sink_submenu_display, 0);
+	return;
+}
 
 gboolean __timeout_resolution_submenu_display(void *data)
 {
@@ -294,7 +437,7 @@ static void __quit_program(void)
 	__disconnect_p2p_connection();
 #endif
 	g_scmirroring = 0;
-	g_main_loop_quit(g_loop);
+	elm_exit();
 }
 
 static void __displaymenu(void)
@@ -313,6 +456,7 @@ static void __displaymenu(void)
 	g_print("T : desTroy\n");
 	g_print("L : Setting resolution\n");
 	g_print("G : Getting negotiated audio and video information\n");
+	g_print("S : setting Sink\n");
 	g_print("q : quit\n");
 	g_print("-----------------------------------------------------------------------------------------\n");
 }
@@ -356,9 +500,23 @@ bool _connected_peer_cb(wifi_direct_connected_peer_info_s *peer, void *user_data
 
 void _activation_cb(int error_code, wifi_direct_device_state_e device_state, void *user_data)
 {
+	gint ret = FALSE;
 	switch (device_state) {
 		case WIFI_DIRECT_DEVICE_STATE_ACTIVATED:
 			g_print("device_state : WIFI_DIRECT_DEVICE_STATE_ACTIVATED\n");
+			ret = __start_wifi_display_connection();
+			if (ret == TRUE) {
+				g_print("__start_wifi_display_connection success\n");
+			} else {
+				g_print("__start_wifi_display_connection fail\n");
+				g_print("Quit Program\n");
+				ret = wifi_direct_deinitialize();
+				if(ret != WIFI_DIRECT_ERROR_NONE)
+					g_print("wifi_direct_deinitialize is failed\n");
+
+				g_scmirroring = 0;
+				elm_exit();
+			}
 			break;
 		case WIFI_DIRECT_DEVICE_STATE_DEACTIVATED:
 			g_print("device_state : WIFI_DIRECT_DEVICE_STATE_DEACTIVATED\n");
@@ -471,6 +629,10 @@ static void __interpret(char *cmd)
 		ret = scmirroring_sink_destroy(g_scmirroring);
 	} else if (strncmp(cmd, "q", 1) == 0) {
 		__quit_program();
+	} else if (strncmp(cmd, "S", 1) == 0) {
+		g_menu = SUBMENU_SETTING_SINK;
+		g_timeout_add(100, __timeout_sink_submenu_display, 0);
+		return;
 	} else if (strncmp(cmd, "L", 1) == 0) {
 		g_menu = SUBMENU_RESOLUTION;
 		g_timeout_add(100, __timeout_resolution_submenu_display, 0);
@@ -521,15 +683,103 @@ gboolean __input(GIOChannel *channel)
 		__interpret_resolution_submenu(buf);
 	else if (g_menu == SUBMENU_GETTING_STREAM_INFO)
 		__interpret_stream_info_submenu(buf);
+	else if (g_menu == SUBMENU_SETTING_SINK)
+		__interpret_sink_submenu(buf);
 
 	return TRUE;
 }
 
 #ifdef TEST_WITH_WIFI_DIRECT
+static gboolean __start_wifi_display_connection()
+{
+	int go_intent = 0;
+	static int is_initialized = FALSE;
+	wifi_direct_state_e direct_state = WIFI_DIRECT_STATE_DEACTIVATED;
+	gint ret = FALSE;
+
+	if(is_initialized == TRUE)
+		return TRUE;
+	is_initialized = TRUE;
+
+	/*Enable Screen Mirroring*/
+	ret = wifi_direct_init_display();
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_display_init failed : %d\n", ret);
+		return FALSE;
+	}
+
+	/*Enable Wifi Direct - You can set this as true if you want to see it from wifi-direct list*/
+	ret = wifi_direct_set_display_availability(TRUE);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_display_init failed : %d\n", ret);
+		return FALSE;
+	}
+
+	ret = wifi_direct_set_display(WIFI_DISPLAY_TYPE_SINK, 2022, 0);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_display_set_device failed : %d\n", ret);
+		return FALSE;
+	}
+
+	ret = wifi_direct_get_group_owner_intent(&go_intent);
+	g_print("go_intent = [%d]\n", go_intent);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_get_group_owner_intent failed : %d\n", ret);
+		return FALSE;
+	}
+
+	go_intent = 1;
+	ret = wifi_direct_set_group_owner_intent(go_intent);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_get_group_owner_intent failed : %d\n", ret);
+		return FALSE;
+	}
+	g_print("wifi_direct_set_group_owner_intent() result=[%d] go_intent[%d]\n", ret, go_intent);
+
+	ret = wifi_direct_set_max_clients(1);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_set_max_clients failed : %d\n", ret);
+		return FALSE;
+	}
+
+	ret = wifi_direct_get_state(&direct_state);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_get_state failed : %d\n", ret);
+		return FALSE;
+	}
+
+	if (direct_state > WIFI_DIRECT_STATE_ACTIVATING) {
+		char *device_name = NULL;
+
+		ret = wifi_direct_start_discovery(1, 0);
+		if (ret != WIFI_DIRECT_ERROR_NONE) {
+			g_print("Error : wifi_direct_start_discovery failed : %d\n", ret);
+			return FALSE;
+		}
+
+		ret = wifi_direct_get_device_name(&device_name);
+		if (ret != WIFI_DIRECT_ERROR_NONE) {
+			g_print("Error : wifi_direct_get_device_name failed : %d\n", ret);
+			return FALSE;
+		}
+
+		g_print("Device Name : [%s]\n", device_name);
+		if (device_name)
+			free(device_name);
+
+	} else {
+		g_print("Error : Direct not activated yet\n");
+	}
+
+	g_print("======  p2p connection established ======\n");
+
+	return TRUE;
+}
+
+
 static gboolean __start_p2p_connection(gpointer data)
 {
 	int ret = WIFI_DIRECT_ERROR_NONE;
-	int go_intent = 0;
 	wifi_direct_state_e direct_state = WIFI_DIRECT_STATE_DEACTIVATED;
 
 	g_print("====== Start p2p connection ======\n");
@@ -592,79 +842,15 @@ static gboolean __start_p2p_connection(gpointer data)
 		} else {
 			g_print("wifi_direct_disconnect_all fail\n");
 		}
-	}
 
-	/*Enable Screen Mirroring*/
-	ret = wifi_direct_init_display();
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_display_init failed : %d\n", ret);
-		goto error;
-	}
-
-	/*Enable Wifi Direct - You can set this as true if you want to see it from wifi-direct list*/
-	ret = wifi_direct_set_display_availability(TRUE);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_display_init failed : %d\n", ret);
-		goto error;
-	}
-
-	ret = wifi_direct_set_display(WIFI_DISPLAY_TYPE_SINK, 2022, 0);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_display_set_device failed : %d\n", ret);
-		goto error;
-	}
-
-	ret = wifi_direct_get_group_owner_intent(&go_intent);
-	g_print("go_intent = [%d]\n", go_intent);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_get_group_owner_intent failed : %d\n", ret);
-		goto error;
-	}
-
-	go_intent = 1;
-	ret = wifi_direct_set_group_owner_intent(go_intent);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_get_group_owner_intent failed : %d\n", ret);
-		goto error;
-	}
-	g_print("wifi_direct_set_group_owner_intent() result=[%d] go_intent[%d]\n", ret, go_intent);
-
-	ret = wifi_direct_set_max_clients(1);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_set_max_clients failed : %d\n", ret);
-		goto error;
-	}
-
-	ret = wifi_direct_get_state(&direct_state);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_get_state failed : %d\n", ret);
-		goto error;
-	}
-
-	if (direct_state > WIFI_DIRECT_STATE_ACTIVATING) {
-		char *device_name = NULL;
-
-		ret = wifi_direct_start_discovery(1, 0);
-		if (ret != WIFI_DIRECT_ERROR_NONE) {
-			g_print("Error : wifi_direct_start_discovery failed : %d\n", ret);
+		ret = __start_wifi_display_connection();
+		if (ret == TRUE) {
+			g_print("__start_wifi_display_connection success\n");
+		} else {
+			g_print("__start_wifi_display_connection fail\n");
 			goto error;
 		}
-
-		ret = wifi_direct_get_device_name(&device_name);
-		if (ret != WIFI_DIRECT_ERROR_NONE) {
-			g_print("Error : wifi_direct_get_device_name failed : %d\n", ret);
-			goto error;
-		}
-
-		g_print("Device Name : [%s]\n", device_name);
-		if (device_name)
-			free(device_name);
-
-	} else {
-		g_print("Error : Direct not activated yet\n");
 	}
-
-	g_print("======  p2p connection established ======\n");
 
 	return TRUE;
 
@@ -704,13 +890,13 @@ static int __scmirroring_sink_create(gpointer data)
 	ret = scmirroring_sink_create(&g_scmirroring);
 	if (ret != SCMIRRORING_ERROR_NONE) {
 		g_print("scmirroring_sink_create fail [%d]", ret);
-		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
 	ret = scmirroring_sink_prepare(g_scmirroring);
 	if (ret != SCMIRRORING_ERROR_NONE) {
 		g_print("scmirroring_sink_prepare fail [%d]", ret);
-		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 	return ret;
 }
@@ -732,6 +918,29 @@ gboolean __scmirroring_sink_start(gpointer data)
 		if (ret != SCMIRRORING_ERROR_NONE) {
 			g_print("Failed to set resolution, error[%d]\n", ret);
 		}
+	}
+
+	if(g_sinktype != -1) {
+
+
+		if(g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
+			evas_object_show(g_evas);
+			ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_OVERLAY, (void *)g_evas);
+		} else if(g_sinktype == SCMIRRORING_DISPLAY_TYPE_EVAS) {
+			g_eo = create_evas_image_object(g_evas);
+
+			evas_object_image_size_set(g_eo, 800, 1200);
+			evas_object_image_fill_set(g_eo, 0, 0, 800, 1200);
+			evas_object_resize(g_eo, 800, 1200);
+			evas_object_show(g_evas);
+			ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_EVAS, (void *)g_eo);
+		}
+
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("scmirroring_sink_set_display fail [%d]", ret);
+			return SCMIRRORING_ERROR_INVALID_OPERATION;
+		}
+
 	}
 
 	ret = scmirroring_sink_prepare(g_scmirroring);
@@ -759,13 +968,6 @@ gboolean __scmirroring_sink_start(gpointer data)
 		return FALSE;
 	}
 
-#if 0
-	ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_X11, NULL);
-	if (ret != SCMIRRORING_ERROR_NONE) {
-		g_print("scmirroring_sink_set_display fail [%d]", ret);
-		return FALSE;
-	}
-#endif
 	return FALSE;
 }
 
@@ -779,14 +981,13 @@ gboolean _scmirroring_start_jobs(gpointer data)
 		return FALSE;
 #endif
 
-	return FALSE;
+	return TRUE;
 }
 
 int main(int argc, char *argv[])
 {
 	GIOChannel *stdin_channel;
-	GMainContext *context = NULL;
-	GSource *start_job_src = NULL;
+
 
 	stdin_channel = g_io_channel_unix_new(0);
 	g_io_channel_set_flags(stdin_channel, G_IO_FLAG_NONBLOCK, NULL);
@@ -794,14 +995,8 @@ int main(int argc, char *argv[])
 
 	__displaymenu();
 
-	g_loop = g_main_loop_new(NULL, FALSE);
-	context = g_main_loop_get_context(g_loop);
-
-	start_job_src = g_idle_source_new();
-	g_source_set_callback(start_job_src, _scmirroring_start_jobs, NULL, NULL);
-	g_source_attach(start_job_src, context);
-
-	g_main_loop_run(g_loop);
+	ops.data = NULL;
+	appcore_efl_main(PACKAGE, &argc, &argv, &ops);
 
 	g_print("Exit Program");
 
