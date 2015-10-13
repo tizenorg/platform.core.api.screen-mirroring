@@ -113,6 +113,7 @@ typedef struct {
 typedef struct {
 	char *ip;
 	char *port;
+	char *server_name;
 	bool use_hdcp;
 	int resolution;
 	/* To communicate with miracast server */

@@ -34,26 +34,24 @@ int main(int argc, char *argv[])
 
 	server = miracast_server_new();
 	if (NULL == server) {
-		scmirroring_error("Unable to create miracast server object! Aborting rtsp server\n");
+		scmirroring_error("Unable to create miracast server object! Aborting miracast server");
 		exit(-1);
 	}
 
 	mainloop = g_main_loop_new(NULL, FALSE);
 	if (NULL == mainloop) {
-		scmirroring_error("Unable to create gmain loop! Aborting rtsp server\n");
+		scmirroring_error("Unable to create gmain loop! Aborting miracast server");
 		exit(-1);
 	}
 
 	if (!miracast_server_setup(server, mainloop)) {
-		scmirroring_error("Unable to initialize test server\n");
+		scmirroring_error("Unable to initialize miracast server");
 		exit(-1);
 	}
 
-
-
-	scmirroring_debug("miracast server run loop \n");
+	scmirroring_debug("miracast server run loop");
 	g_main_loop_run(mainloop);
 
-	scmirroring_debug("MIRACAST SERVER EXIT \n");
+	scmirroring_debug("MIRACAST SERVER EXIT");
 	exit(0);
 }

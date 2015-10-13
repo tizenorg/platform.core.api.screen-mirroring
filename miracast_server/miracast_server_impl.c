@@ -31,6 +31,9 @@
 #include "scmirroring_private.h"
 #include "scmirroring_src_ini.h"
 
+#include <gst/rtsp-server/rtsp-server-wfd.h>
+#include <gst/rtsp-server/rtsp-media-factory-wfd.h>
+
 #define MAX_CLIENT_CNT 1
 #define MAX_MSG_LEN 128
 #define MEDIA_IPC_PATH "/tmp/.miracast_ipc_rtspserver"
@@ -153,6 +156,7 @@ static void __miracast_server_interpret(MiracastServer *server, gchar *buf);
 static int __miracast_server_send_resp(MiracastServer *server, const gchar *cmd);
 static void __miracast_server_quit_program(MiracastServer *server);
 static int __miracast_server_start(MiracastServer *server_obj);
+static gboolean __miracast_server_setup(MiracastServer *server_obj);
 
 static void miracast_server_init(MiracastServer *obj)
 {
@@ -179,6 +183,7 @@ static void miracast_server_class_init(MiracastServerClass *klass)
 	klass->send_response = __miracast_server_send_resp;
 	klass->quit_server = __miracast_server_quit_program;
 	klass->server_start = __miracast_server_start;
+	klass->server_setup = __miracast_server_setup;
 }
 
 int __miracast_server_send_resp(MiracastServer *server, const gchar *cmd)
@@ -325,7 +330,7 @@ static void __miracast_server_set_signal()
 	sigaction(SIGSYS, &act_new, NULL);
 }
 
-static bool __miracast_server_setup(MiracastServer* server)
+static gboolean __miracast_server_setup(MiracastServer* server)
 {
 	scmirroring_debug("__miracast_server_setup start\n");
 
@@ -918,12 +923,19 @@ miracast_server_setup(MiracastServer *server, GMainLoop *mainloop)
 	GSource *source = NULL;
 	GIOChannel *channel = NULL;
 	GMainContext *context = NULL;
+	MiracastServerClass *klass = NULL;
 
 #if !GLIB_CHECK_VERSION(2, 35, 0)
 	g_type_init();
 #endif
 
-	if (!__miracast_server_setup(server)) {
+	klass = MIRACAST_SERVER_GET_CLASS(server);
+	if (klass == NULL) {
+		scmirroring_error("Unable to get miracast server class");
+		return FALSE;
+	}
+
+	if (!klass->server_setup(server)) {
 		scmirroring_error("Unable to initialize test server\n");
 		return FALSE;
 	}

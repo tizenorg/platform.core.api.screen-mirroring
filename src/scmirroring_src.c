@@ -106,14 +106,34 @@ static int __miracast_server_launch(scmirroring_src_s *scmirroring)
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
+	gchar *name = NULL;
+	gchar *if_name = NULL;
+	gchar *obj_path = NULL;
+
+	if (scmirroring->server_name) {
+		name = g_strdup_printf("org.tizen.%s.server", scmirroring->server_name);
+		if_name = g_strdup_printf("org.tizen.%s.server", scmirroring->server_name);
+		obj_path = g_strdup_printf("/org/tizen/%s/server", scmirroring->server_name);
+	} else {
+		name = g_strdup("org.tizen.scmirroring.server");
+		if_name = g_strdup("org.tizen.scmirroring.server");
+		obj_path = g_strdup("/org/tizen/scmirroring/server");
+	}
+
+	scmirroring_debug ("Server Name : %s", name);
+
 	proxy = g_dbus_proxy_new_sync(conn,
 	                              G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
 	                              NULL,
-	                              "org.tizen.scmirroring.server",
-	                              "/org/tizen/scmirroring/server",
-	                              "org.tizen.scmirroring.server",
+	                              name,
+	                              obj_path,
+	                              if_name,
 	                              NULL,
 	                              &error);
+	g_free(name);
+	g_free(if_name);
+	g_free(obj_path);
+
 	if (error) {
 		scmirroring_error("g_dbus_proxy_new_sync failed : %s", error->message);
 		g_error_free(error);
@@ -349,6 +369,7 @@ int scmirroring_src_create(scmirroring_src_h *scmirroring)
 	_scmirroring->channel = NULL;
 	_scmirroring->sock_path = NULL;
 	_scmirroring->current_state = SCMIRRORING_STATE_NONE;
+	_scmirroring->server_name = g_strdup("scmirroring");
 
 	*scmirroring = (scmirroring_src_h)_scmirroring;
 
@@ -490,6 +511,26 @@ int scmirroring_src_set_resolution(scmirroring_src_h scmirroring, scmirroring_re
 	if (_scmirroring->connected) {
 		ret = __scmirroring_src_send_set_reso(_scmirroring);
 	}
+
+	scmirroring_debug_fleave();
+
+	return ret;
+}
+
+int scmirroring_src_set_server_name(scmirroring_src_h scmirroring, const char *name)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+
+	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
+
+	scmirroring_debug_fenter();
+
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+
+	if (_scmirroring->server_name) g_free(_scmirroring->server_name);
+	_scmirroring->server_name = g_strdup(name);
 
 	scmirroring_debug_fleave();
 

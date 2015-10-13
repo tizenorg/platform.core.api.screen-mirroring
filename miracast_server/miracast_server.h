@@ -22,8 +22,7 @@
 #ifndef __MIRACAST_SERVER_H__
 #define __MIRACAST_SERVER_H__
 
-#include <gst/rtsp-server/rtsp-server-wfd.h>
-#include <gst/rtsp-server/rtsp-media-factory-wfd.h>
+#include <gst/gst.h>
 
 typedef struct _MiracastServer MiracastServer;
 typedef struct _MiracastServerClass MiracastServerClass;
@@ -61,8 +60,9 @@ struct _MiracastServerClass {
 	int      (*send_response) (MiracastServer *server, const gchar *cmd);
 	int      (*server_start)  (MiracastServer *server);
 	void     (*quit_server)   (MiracastServer *server);
+	gboolean (*server_setup)  (MiracastServer *server);
 
-	gpointer _gst_reserved[GST_PADDING_LARGE];
+	gpointer _gst_reserved[GST_PADDING_LARGE - 1];
 };
 
 GType            miracast_server_get_type(void);

@@ -20,6 +20,8 @@ SET(VERSION ${version})
 
 SET(INC_DIR include)
 INCLUDE_DIRECTORIES(${INC_DIR})
+SET(INC_DIR1 miracast_server)
+INCLUDE_DIRECTORIES(${INC_DIR1})
 
 INCLUDE(FindPkgConfig)
 pkg_check_modules(${fw_name} REQUIRED ${dependents} capi-system-info)
@@ -58,6 +60,11 @@ INSTALL(
         FILES_MATCHING
         PATTERN "*_private.h" EXCLUDE
         PATTERN "${INC_DIR}/*.h"
+        )
+INSTALL(
+        DIRECTORY ${INC_DIR1}/ DESTINATION include/${service}
+        FILES_MATCHING
+        PATTERN "${INC_DIR1}/*.h"
         )
 
 SET(PC_NAME ${fw_name})
