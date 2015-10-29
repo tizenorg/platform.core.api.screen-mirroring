@@ -329,7 +329,7 @@ int scmirroring_sink_set_state_changed_cb(scmirroring_sink_h scmirroring_sink, s
 	}
 
 	handle->scmirroring_sink_state_cb->user_data = user_data;
-	handle->scmirroring_sink_state_cb->state_cb  = callback;
+	handle->scmirroring_sink_state_cb->state_cb = callback;
 
 	ret = mm_wfd_sink_set_message_callback(handle->mm_handle, __mm_scmirroring_sink_set_message_cb, handle);
 

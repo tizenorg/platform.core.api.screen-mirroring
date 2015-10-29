@@ -42,8 +42,8 @@ static void _win_del(void *data, Evas_Object *obj, void *event);
 static gboolean _scmirroring_start_jobs(gpointer data);
 
 struct appcore_ops ops = {
-        .create = app_create,
-        .terminate = app_terminate,
+		.create = app_create,
+		.terminate = app_terminate,
 };
 static Evas_Object* g_evas;
 static Evas_Object* g_eo = NULL;
@@ -72,16 +72,16 @@ static gboolean __start_p2p_connection(gpointer data);
 static gboolean __disconnect_p2p_connection(void);
 #endif
 static void __quit_program(void);
-gboolean 	__timeout_menu_display(void *data);
+gboolean __timeout_menu_display(void *data);
 
 /* Submenu for setting resolution */
 static void __display_resolution_submenu(void);
-gboolean 	__timeout_resolution_submenu_display(void *data);
+gboolean __timeout_resolution_submenu_display(void *data);
 static void __interpret_resolution_submenu(char *cmd);
 
 /* Submenu for getting negotiated audio and video information */
 static void __display_stream_info_submenu(void);
-gboolean 	__timeout_stream_info_submenu_display(void *data);
+gboolean __timeout_stream_info_submenu_display(void *data);
 static void __interpret_stream_info_submenu(char *cmd);
 
 /* Submenu for setting sink type */
@@ -99,14 +99,13 @@ static Evas_Object* _create_win(const char *name)
 {
 	Evas_Object *eo = NULL;
 
-	g_printf ("[%s][%d] name=%s\n", __func__, __LINE__, name);
+	g_printf("[%s][%d] name=%s\n", __func__, __LINE__, name);
 
 	eo = elm_win_add(NULL, name, ELM_WIN_BASIC);
-	if (eo)
-	{
+	if (eo) {
 		elm_win_title_set(eo, name);
 		elm_win_borderless_set(eo, EINA_TRUE);
-		evas_object_smart_callback_add(eo, "delete,request",_win_del, NULL);
+		evas_object_smart_callback_add(eo, "delete,request", _win_del, NULL);
 		elm_win_autodel_set(eo, EINA_TRUE);
 	}
 	return eo;
@@ -114,7 +113,7 @@ static Evas_Object* _create_win(const char *name)
 
 static Evas_Object *create_evas_image_object(Evas_Object *eo_parent)
 {
-	if(!eo_parent) {
+	if (!eo_parent) {
 		return NULL;
 	}
 	Evas *evas = evas_object_evas_get(eo_parent);
@@ -143,7 +142,7 @@ static int app_create(void *data)
 	evas_object_show(win);
 
 	result = _scmirroring_start_jobs((void *)NULL);
-	if(result != TRUE){
+	if (result != TRUE) {
 		g_print("failed _scmirroring_start_jobs ");
 	}
 
@@ -154,12 +153,12 @@ static int app_create(void *data)
 }
 static int app_terminate(void *data)
 {
+	if (g_evas) {
+		evas_object_del(g_evas);
+		g_evas = NULL;
+	}
 
-  if (g_evas) {
-    evas_object_del(g_evas);
-    g_evas = NULL;
-  }
-  return 0;
+	return 0;
 }
 
 gboolean __timeout_sink_submenu_display(void *data)
@@ -172,10 +171,10 @@ static void __display_sink_submenu(void)
 {
 	g_print("\n");
 	g_print("**********************************************************************\n");
-	g_print("     Setting sink \n");
+	g_print("		Setting sink \n");
 	g_print("**********************************************************************\n");
-	g_print("1 : SCMIRRORING_DISPLAY_TYPE_OVERLAY with No Surface(DEFAULT)\n" );
-	g_print("2 : SCMIRRORING_DISPLAY_TYPE_OVERLAY with Surface\n" );
+	g_print("1 : SCMIRRORING_DISPLAY_TYPE_OVERLAY with No Surface(DEFAULT)\n");
+	g_print("2 : SCMIRRORING_DISPLAY_TYPE_OVERLAY with Surface\n");
 	g_print("3 : SCMIRRORING_DISPLAY_TYPE_EVAS\n");
 	g_print("g : Go back to main menu \n");
 	g_print("**********************************************************************\n");
@@ -215,7 +214,7 @@ static void __display_resolution_submenu(void)
 {
 	g_print("\n");
 	g_print("**********************************************************************\n");
-	g_print("     Setting resolution \n");
+	g_print("		Setting resolution \n");
 	g_print("**********************************************************************\n");
 	g_print("1 : SCMIRRORING_RESOLUTION_1920x1080_P30 [%d]\n", SCMIRRORING_RESOLUTION_1920x1080_P30);
 	g_print("2 : SCMIRRORING_RESOLUTION_1280x720_P30  [%d]\n", SCMIRRORING_RESOLUTION_1280x720_P30);
@@ -279,7 +278,7 @@ static void __display_stream_info_submenu(void)
 {
 	g_print("\n");
 	g_print("**********************************************************************\n");
-	g_print("     Getting negotiated audio and video information \n");
+	g_print("		Getting negotiated audio and video information \n");
 	g_print("**********************************************************************\n");
 	g_print("1 : video codec\n");
 	g_print("2 : video resolution\n");
@@ -444,11 +443,11 @@ static void __displaymenu(void)
 {
 	g_print("\n");
 	g_print("=====================================================================\n");
-	g_print("                          SCMIRRORING Sink Testsuite(press q to quit) \n");
+	g_print("				SCMIRRORING Sink Testsuite(press q to quit) \n");
 	g_print("=====================================================================\n");
 #ifndef TEST_WITH_WIFI_DIRECT
 	g_print("a : a ip port(ex. a 192.168.49.1 2022)\n");
-	g_print("s : start  \n");
+	g_print("s : start \n");
 #endif
 	g_print("P : Pause\n");
 	g_print("R : Resume\n");
@@ -511,7 +510,7 @@ void _activation_cb(int error_code, wifi_direct_device_state_e device_state, voi
 				g_print("__start_wifi_display_connection fail\n");
 				g_print("Quit Program\n");
 				ret = wifi_direct_deinitialize();
-				if(ret != WIFI_DIRECT_ERROR_NONE)
+				if (ret != WIFI_DIRECT_ERROR_NONE)
 					g_print("wifi_direct_deinitialize is failed\n");
 
 				g_scmirroring = 0;
@@ -697,7 +696,7 @@ static gboolean __start_wifi_display_connection()
 	wifi_direct_state_e direct_state = WIFI_DIRECT_STATE_DEACTIVATED;
 	gint ret = FALSE;
 
-	if(is_initialized == TRUE)
+	if (is_initialized == TRUE)
 		return TRUE;
 	is_initialized = TRUE;
 
@@ -771,7 +770,7 @@ static gboolean __start_wifi_display_connection()
 		g_print("Error : Direct not activated yet\n");
 	}
 
-	g_print("======  p2p connection established ======\n");
+	g_print("====== p2p connection established ======\n");
 
 	return TRUE;
 }
@@ -793,28 +792,28 @@ static gboolean __start_p2p_connection(gpointer data)
 	struct ug_data *ugd = (struct ug_data *)data;
 
 	/* Activation / Deactivation state Callback */
-	ret =  wifi_direct_set_device_state_changed_cb(_activation_cb, (void *)ugd);
+	ret = wifi_direct_set_device_state_changed_cb(_activation_cb, (void *)ugd);
 	if (ret != WIFI_DIRECT_ERROR_NONE) {
 		g_print("Error : wifi_direct_set_device_state_changed_cb failed : %d\n", ret);
 		goto error;
 	}
 
 	/* Discovery state Callback */
-	ret =  wifi_direct_set_discovery_state_changed_cb(_discover_cb, (void *)ugd);
+	ret = wifi_direct_set_discovery_state_changed_cb(_discover_cb, (void *)ugd);
 	if (ret != WIFI_DIRECT_ERROR_NONE) {
 		g_print("Error : wifi_direct_set_discovery_state_changed_cb failed : %d\n", ret);
 		goto error;
 	}
 
 	/* Connection state Callback */
-	ret =  wifi_direct_set_connection_state_changed_cb(_connection_cb, (void *)ugd);
+	ret = wifi_direct_set_connection_state_changed_cb(_connection_cb, (void *)ugd);
 	if (ret != WIFI_DIRECT_ERROR_NONE) {
 		g_print("Error : wifi_direct_set_connection_state_changed_cb failed : %d\n", ret);
 		goto error;
 	}
 
 	/* IP address assigning state callback */
-	ret =  wifi_direct_set_client_ip_address_assigned_cb(_ip_assigned_cb, (void *)ugd);
+	ret = wifi_direct_set_client_ip_address_assigned_cb(_ip_assigned_cb, (void *)ugd);
 	if (ret != WIFI_DIRECT_ERROR_NONE) {
 		g_print("Error : wifi_direct_set_client_ip_address_assigned_cb failed : %d\n", ret);
 		goto error;
@@ -920,13 +919,11 @@ gboolean __scmirroring_sink_start(gpointer data)
 		}
 	}
 
-	if(g_sinktype != -1) {
-
-
-		if(g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
+	if (g_sinktype != -1) {
+		if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
 			evas_object_show(g_evas);
 			ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_OVERLAY, (void *)g_evas);
-		} else if(g_sinktype == SCMIRRORING_DISPLAY_TYPE_EVAS) {
+		} else if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_EVAS) {
 			g_eo = create_evas_image_object(g_evas);
 
 			evas_object_image_size_set(g_eo, 800, 1200);

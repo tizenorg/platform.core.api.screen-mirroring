@@ -50,7 +50,7 @@ static gboolean __scmirroring_src_callback_call(gpointer data)
 		SCMIRRORING_SAFE_FREE(scmirroring->port);
 		SCMIRRORING_SAFE_FREE(scmirroring->scmirroring_state_cb);
 
-		g_io_channel_shutdown(scmirroring->channel,  FALSE, NULL);
+		g_io_channel_shutdown(scmirroring->channel, FALSE, NULL);
 		g_io_channel_unref(scmirroring->channel);
 
 		SCMIRRORING_SAFE_FREE(scmirroring->sock_path);
@@ -120,16 +120,16 @@ static int __miracast_server_launch(scmirroring_src_s *scmirroring)
 		obj_path = g_strdup("/org/tizen/scmirroring/server");
 	}
 
-	scmirroring_debug ("Server Name : %s", name);
+	scmirroring_debug("Server Name : %s", name);
 
 	proxy = g_dbus_proxy_new_sync(conn,
-	                              G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
-	                              NULL,
-	                              name,
-	                              obj_path,
-	                              if_name,
-	                              NULL,
-	                              &error);
+								G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+								NULL,
+								name,
+								obj_path,
+								if_name,
+								NULL,
+								&error);
 	g_free(name);
 	g_free(if_name);
 	g_free(obj_path);
@@ -554,8 +554,7 @@ int scmirroring_src_connect(scmirroring_src_h scmirroring)
 	scmirroring_debug_fenter();
 
 	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
-	scmirroring_retvm_if(_scmirroring->connected == CONNECTED_TO_SERVER, SCMIRRORING_ERROR_INVALID_OPERATION,
-	                     "INVALID OPERATION, already connected to server.");
+	scmirroring_retvm_if(_scmirroring->connected == CONNECTED_TO_SERVER, SCMIRRORING_ERROR_INVALID_OPERATION, "INVALID OPERATION, already connected to server.");
 
 	/*Create TCP Socket*/
 	if ((sock = socket(PF_FILE, SOCK_STREAM, 0)) < 0) {
