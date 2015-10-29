@@ -72,26 +72,26 @@ static GDBusNodeInfo *introspection_data = NULL;
 
 /* Introspection data for the service we are exporting */
 static const gchar introspection_xml[] =
-    "<node>"
-    "  <interface name='"PROC_DBUS_INTERFACE"'>"
-    "    <method name='launch_method'>"
-    "    </method>"
-    "    <method name='get_miracast_wfd_source_status'>"
-    "      <arg type='i' name='status' direction='out'/>"
-    "    </method>"
-    "  </interface>"
-    "</node>";
+	"<node>"
+	"  <interface name='"PROC_DBUS_INTERFACE"'>"
+	"    <method name='launch_method'>"
+	"    </method>"
+	"    <method name='get_miracast_wfd_source_status'>"
+	"      <arg type='i' name='status' direction='out'/>"
+	"    </method>"
+	"  </interface>"
+	"</node>";
 
 
 static void
 handle_method_call(GDBusConnection       *connection,
-                   const gchar           *sender,
-                   const gchar           *object_path,
-                   const gchar           *interface_name,
-                   const gchar           *method_name,
-                   GVariant              *parameters,
-                   GDBusMethodInvocation *invocation,
-                   gpointer               user_data)
+						const gchar           *sender,
+						const gchar           *object_path,
+						const gchar           *interface_name,
+						const gchar           *method_name,
+						GVariant              *parameters,
+						GDBusMethodInvocation *invocation,
+						gpointer               user_data)
 {
 	scmirroring_debug("handle_method_call is called\n");
 
@@ -115,36 +115,27 @@ static const GDBusInterfaceVTable interface_vtable = {
 	{NULL}
 };
 
-static void
-on_bus_acquired(GDBusConnection *connection,
-                const gchar     *name,
-                gpointer         user_data)
+static void on_bus_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
 	guint registration_id;
 
 	scmirroring_debug("on_bus_acquired called\n");
 	registration_id = g_dbus_connection_register_object(connection,
-	                                                    PROC_DBUS_OBJECT,
-	                                                    introspection_data->interfaces[0],
-	                                                    &interface_vtable,
-	                                                    NULL,
-	                                                    NULL,  /* user_data_free_func */
-	                                                    NULL); /* GError** */
+												PROC_DBUS_OBJECT,
+												introspection_data->interfaces[0],
+												&interface_vtable,
+												NULL,
+												NULL,  /* user_data_free_func */
+												NULL); /* GError** */
 	g_assert(registration_id > 0);
 }
 
-static void
-on_name_acquired(GDBusConnection *connection,
-                 const gchar     *name,
-                 gpointer         user_data)
+static void on_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
 	scmirroring_debug("on_name_acquired called\n");
 }
 
-static void
-on_name_lost(GDBusConnection *connection,
-             const gchar     *name,
-             gpointer         user_data)
+static void on_name_lost(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
 	scmirroring_debug("on_name_lost called\n");
 }
@@ -341,13 +332,13 @@ static gboolean __miracast_server_setup(MiracastServer* server)
 	}
 
 	g_bus_own_name(G_BUS_TYPE_SYSTEM,
-	               PROC_DBUS_INTERFACE,
-	               G_BUS_NAME_OWNER_FLAGS_NONE,
-	               on_bus_acquired,
-	               on_name_acquired,
-	               on_name_lost,
-	               G_OBJECT(server),
-	               NULL);
+					PROC_DBUS_INTERFACE,
+					G_BUS_NAME_OWNER_FLAGS_NONE,
+					on_bus_acquired,
+					on_name_acquired,
+					on_name_lost,
+					G_OBJECT(server),
+					NULL);
 
 	__miracast_server_set_signal();
 	scmirroring_debug("__miracast_server_setup end\n");
@@ -535,9 +526,7 @@ __teardown_req(GstRTSPClient *client, GstRTSPContext *ctx)
 	return;
 }
 
-static void
-__miracast_server_client_connected_cb(GstRTSPServer *server,
-                                      GstRTSPClient *client, gpointer user_data)
+static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSPClient *client, gpointer user_data)
 {
 	MiracastServer *server_obj = (MiracastServer *)user_data;
 	MiracastServerClass *klass;
@@ -591,20 +580,20 @@ int __miracast_server_start(MiracastServer *server_obj)
 	factory = gst_rtsp_media_factory_wfd_new();
 
 	gst_rtsp_media_factory_wfd_set(factory,
-	                               scmirroring_src_ini_get_structure()->videosrc_element,
-	                               scmirroring_src_ini_get_structure()->name_of_audio_device,
-	                               scmirroring_src_ini_get_structure()->audio_latency_time,
-	                               scmirroring_src_ini_get_structure()->audio_buffer_time,
-	                               scmirroring_src_ini_get_structure()->audio_do_timestamp,
-	                               scmirroring_src_ini_get_structure()->mtu_size
+							scmirroring_src_ini_get_structure()->videosrc_element,
+							scmirroring_src_ini_get_structure()->name_of_audio_device,
+							scmirroring_src_ini_get_structure()->audio_latency_time,
+							scmirroring_src_ini_get_structure()->audio_buffer_time,
+							scmirroring_src_ini_get_structure()->audio_do_timestamp,
+							scmirroring_src_ini_get_structure()->mtu_size
 	);
 
-	gst_rtsp_media_factory_wfd_set_encoders (factory,
+	gst_rtsp_media_factory_wfd_set_encoders(factory,
 			scmirroring_src_ini_get_structure()->name_of_video_encoder,
 			scmirroring_src_ini_get_structure()->name_of_audio_encoder_aac,
 			scmirroring_src_ini_get_structure()->name_of_audio_encoder_ac3);
 
-	gst_rtsp_wfd_server_set_audio_codec (server,
+	gst_rtsp_wfd_server_set_audio_codec(server,
 			scmirroring_src_ini_get_structure()->audio_codec);
 
 	if (server_obj->resolution == SCMIRRORING_RESOLUTION_1920x1080_P30) {
@@ -630,12 +619,10 @@ int __miracast_server_start(MiracastServer *server_obj)
 		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_HH_640x360P30);
 	} else {
 		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server,
-		                                       scmirroring_src_ini_get_structure()->video_reso_supported);
+		gst_rtsp_wfd_server_set_supported_reso(server, scmirroring_src_ini_get_structure()->video_reso_supported);
 	}
 
-	gst_rtsp_media_factory_wfd_set_dump_ts(factory,
-	                                       scmirroring_src_ini_get_structure()->dump_ts);
+	gst_rtsp_media_factory_wfd_set_dump_ts(factory, scmirroring_src_ini_get_structure()->dump_ts);
 
 	g_object_ref(factory);
 	gst_rtsp_mount_points_add_factory(mounts, TEST_MOUNT_POINT, GST_RTSP_MEDIA_FACTORY(factory));
@@ -645,8 +632,7 @@ int __miracast_server_start(MiracastServer *server_obj)
 	if ((id = gst_rtsp_server_attach(GST_RTSP_SERVER_CAST(server), NULL)) == 0)
 		goto failed;
 
-	g_signal_connect(server, "client-connected",
-	                 G_CALLBACK(__miracast_server_client_connected_cb), server_obj);
+	g_signal_connect(server, "client-connected", G_CALLBACK(__miracast_server_client_connected_cb), server_obj);
 
 	server_obj->server = (void *) server;
 	server_obj->factory = (void *) factory;
@@ -759,9 +745,7 @@ int __miracast_server_accept(int serv_sock, int *client_sock)
 	return SCMIRRORING_ERROR_NONE;
 }
 
-gboolean __miracast_server_client_read_cb(GIOChannel *src,
-                                          GIOCondition condition,
-                                          gpointer data)
+gboolean __miracast_server_client_read_cb(GIOChannel *src, GIOCondition condition, gpointer data)
 {
 	char buf[MAX_MSG_LEN + 1];
 	gsize read;
@@ -808,9 +792,7 @@ gboolean __miracast_server_client_read_cb(GIOChannel *src,
 }
 
 
-gboolean __miracast_server_read_cb(GIOChannel *src,
-                                   GIOCondition condition,
-                                   gpointer data)
+gboolean __miracast_server_read_cb(GIOChannel *src, GIOCondition condition, gpointer data)
 {
 	MiracastServer *server = (MiracastServer *)data;
 
@@ -882,8 +864,8 @@ static int __miracast_server_emit_status_signal(int status)
 	}
 
 	ret = g_dbus_connection_emit_signal(conn,
-	                                    NULL, PROC_DBUS_OBJECT, PROC_DBUS_INTERFACE, PROC_DBUS_STATUS_CHANGE_SIGNAL,
-	                                    g_variant_new("(i)", status), &err);
+									NULL, PROC_DBUS_OBJECT, PROC_DBUS_INTERFACE, PROC_DBUS_STATUS_CHANGE_SIGNAL,
+									g_variant_new("(i)", status), &err);
 	if (!ret && err) {
 		scmirroring_error("g_dbus_connection_emit_signal() error(%s) ", err->message);
 		goto error;
@@ -897,7 +879,7 @@ static int __miracast_server_emit_status_signal(int status)
 
 	g_object_unref(conn);
 	scmirroring_debug("sending miracast server status [%s] success",
-	                  (status == MIRACAST_WFD_SOURCE_ON) ? "On" : "Off");
+					(status == MIRACAST_WFD_SOURCE_ON) ? "On" : "Off");
 
 	g_server_status = status;
 
@@ -909,14 +891,12 @@ error:
 	return -1;
 }
 
-MiracastServer*
-miracast_server_new (void)
+MiracastServer* miracast_server_new(void)
 {
-	return g_object_new (MIRACAST_SERVER_TYPE_OBJECT, NULL);
+	return g_object_new(MIRACAST_SERVER_TYPE_OBJECT, NULL);
 }
 
-gboolean
-miracast_server_setup(MiracastServer *server, GMainLoop *mainloop)
+gboolean miracast_server_setup(MiracastServer *server, GMainLoop *mainloop)
 {
 	int sockfd = -1;
 

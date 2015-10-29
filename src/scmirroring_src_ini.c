@@ -29,20 +29,19 @@ static void __scmirroring_ini_check_ini_status(void);
 
 /* macro */
 #define SCMIRRORING_INI_GET_STRING(x_item, x_ini, x_default) \
-do \
-{ \
+do { \
 	gchar* str = NULL; \
 	gint length = 0; \
 	str = iniparser_getstring(dict, x_ini, (char *)x_default); \
-	if ( str ) { \
-		length = strlen (str); \
-		if(( length > 1 ) && ( length < SCMIRRORING_SRC_INI_MAX_STRLEN ) ) \
-			strncpy ( x_item, str, length + 1); \
+	if (str) { \
+		length = strlen(str); \
+		if ((length > 1) && (length < SCMIRRORING_SRC_INI_MAX_STRLEN)) \
+			strncpy(x_item, str, length + 1); \
 		else \
-			strncpy ( x_item, x_default, SCMIRRORING_SRC_INI_MAX_STRLEN - 1); \
+			strncpy(x_item, x_default, SCMIRRORING_SRC_INI_MAX_STRLEN - 1); \
 	} \
 	else { \
-		strncpy ( x_item, x_default, SCMIRRORING_SRC_INI_MAX_STRLEN - 1); \
+		strncpy(x_item, x_default, SCMIRRORING_SRC_INI_MAX_STRLEN - 1); \
 	} \
 } while (0);
 
