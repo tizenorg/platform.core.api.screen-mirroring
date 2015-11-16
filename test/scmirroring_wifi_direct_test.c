@@ -21,7 +21,6 @@
 #include <wifi-direct.h>
 
 #define MAX_STRING_LEN    2048
-#define ENABLE_WIFI_DIRECT
 
 scmirroring_src_h g_scmirroring = NULL;
 GMainLoop *g_loop;
@@ -32,9 +31,8 @@ bool _discovered_peer_cb(wifi_direct_discovered_peer_info_s *peer, void *user_da
 void _discover_cb(int error_code, wifi_direct_discovery_state_e discovery_state, void *user_data);
 void _ip_assigned_cb(const char *mac_address, const char *ip_address, const char *interface_address, void *user_data);
 void _connection_cb(int error_code, wifi_direct_connection_state_e connection_state, const char *mac_address, void *user_data);
-#ifdef ENABLE_WIFI_DIRECT
+static gboolean __start_wifi_display_connection();
 static gboolean __start_p2p_connection(gpointer data);
-#endif
 static gboolean __disconnect_p2p_connection(void);
 static int g_peer_cnt = 0;
 static char g_peer_ip[32];
@@ -174,6 +172,7 @@ gboolean __input(GIOChannel *channel)
 	return TRUE;
 }
 
+
 static gboolean __disconnect_p2p_connection(void)
 {
 	int ret = WIFI_DIRECT_ERROR_NONE;
@@ -211,9 +210,24 @@ bool _connected_peer_cb(wifi_direct_connected_peer_info_s *peer, void *user_data
 
 void _activation_cb(int error_code, wifi_direct_device_state_e device_state, void *user_data)
 {
+	int ret = 0;
+
 	switch (device_state) {
 		case WIFI_DIRECT_DEVICE_STATE_ACTIVATED:
 			g_print("device_state : WIFI_DIRECT_DEVICE_STATE_ACTIVATED\n");
+			ret = __start_wifi_display_connection();
+			if (ret == TRUE) {
+				g_print("__start_wifi_display_connection success\n");
+			} else {
+				g_print("__start_wifi_display_connection fail\n");
+				g_print("Quit Program\n");
+				ret = wifi_direct_deinitialize();
+				if(ret != WIFI_DIRECT_ERROR_NONE)
+					g_print("wifi_direct_deinitialize is failed\n");
+
+				g_scmirroring = 0;
+				g_main_loop_quit(g_loop);
+			}
 			break;
 		case WIFI_DIRECT_DEVICE_STATE_DEACTIVATED:
 			g_print("device_state : WIFI_DIRECT_DEVICE_STATE_DEACTIVATED\n");
@@ -319,11 +333,66 @@ void _connection_cb(int error_code, wifi_direct_connection_state_e connection_st
 	return;
 }
 
-#ifdef ENABLE_WIFI_DIRECT
+static gboolean __start_wifi_display_connection()
+{
+	int go_intent = 0;
+	static int is_initialized = FALSE;
+	gint ret = FALSE;
+
+	if(is_initialized == TRUE)
+		return TRUE;
+	is_initialized = TRUE;
+
+	/*Enable Screen Mirroring*/
+	ret = wifi_direct_init_display();
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_init_display failed : %d\n", ret);
+		return FALSE;
+	}
+
+	ret = wifi_direct_set_display_availability(TRUE);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_set_display_availability failed : %d\n", ret);
+		return FALSE;
+	}
+
+	ret = wifi_direct_set_display(WIFI_DISPLAY_TYPE_SRC, 2022, 0);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_display_set_device failed : %d\n", ret);
+		return FALSE;
+	}
+
+	ret = wifi_direct_get_group_owner_intent(&go_intent);
+	g_print("go_intent = [%d]\n", go_intent);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_get_group_owner_intent failed : %d\n", ret);
+		return FALSE;
+	}
+
+	go_intent = 14;
+	ret = wifi_direct_set_group_owner_intent(go_intent);
+	if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_get_group_owner_intent failed : %d\n", ret);
+		return FALSE;
+	}
+	g_print("wifi_direct_set_group_owner_intent() result=[%d] go_intent[%d]\n", ret, go_intent);
+
+	/* 10 sec discovery in cycle mode */
+	int err =  wifi_direct_start_discovery(0, 10);
+	if (err < WIFI_DIRECT_ERROR_NONE) {
+		g_print("wifi_direct_discovery fail\n");
+		return FALSE;
+	} else {
+		g_print("wifi_direct_discovery start\n");
+	}
+	g_print("======  p2p connection established ======\n");
+
+	return TRUE;
+}
+
 static gboolean __start_p2p_connection(gpointer data)
 {
 	int ret = WIFI_DIRECT_ERROR_NONE;
-	int go_intent = 0;
 	wifi_direct_state_e direct_state = WIFI_DIRECT_STATE_DEACTIVATED;
 	struct ug_data *ugd = (struct ug_data *)data;
 
@@ -385,53 +454,15 @@ static gboolean __start_p2p_connection(gpointer data)
 		} else {
 			g_print("wifi_direct_disconnect_all fail\n");
 		}
+
+		ret = __start_wifi_display_connection();
+		if (ret == TRUE) {
+			g_print("__start_wifi_display_connection success\n");
+		} else {
+			g_print("__start_wifi_display_connection fail\n");
+			goto error;
+		}		
 	}
-
-	/*Enable Screen Mirroring*/
-	ret = wifi_direct_init_display();
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_init_display failed : %d\n", ret);
-		goto error;
-	}
-
-	ret = wifi_direct_set_display_availability(TRUE);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_set_display_availability failed : %d\n", ret);
-		goto error;
-	}
-
-	ret = wifi_direct_set_display(WIFI_DISPLAY_TYPE_SRC, 2022, 0);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_display_set_device failed : %d\n", ret);
-		goto error;
-	}
-
-	ret = wifi_direct_get_group_owner_intent(&go_intent);
-	g_print("go_intent = [%d]\n", go_intent);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_get_group_owner_intent failed : %d\n", ret);
-		goto error;
-	}
-
-	go_intent = 14;
-	ret = wifi_direct_set_group_owner_intent(go_intent);
-	if (ret != WIFI_DIRECT_ERROR_NONE) {
-		g_print("Error : wifi_direct_get_group_owner_intent failed : %d\n", ret);
-		goto error;
-	}
-	g_print("wifi_direct_set_group_owner_intent() result=[%d] go_intent[%d]\n", ret, go_intent);
-
-	/* 10 sec discovery in cycle mode */
-	int err =  wifi_direct_start_discovery(0, 10);
-	if (err < WIFI_DIRECT_ERROR_NONE) {
-		g_print("wifi_direct_discovery fail\n");
-		return false;
-	} else {
-		g_print("wifi_direct_discovery start\n");
-	}
-
-
-	g_print("======  p2p connection established ======\n");
 
 	return TRUE;
 
@@ -440,13 +471,10 @@ error:
 
 	return FALSE;
 }
-#endif
 
 gboolean _scmirroring_start_jobs(gpointer data)
 {
-#ifdef ENABLE_WIFI_DIRECT
 	__start_p2p_connection(data);
-#endif
 	return FALSE;
 }
 
