@@ -64,7 +64,7 @@ static void __displaymenu(void)
 	g_print("=====================================================================\n");
 	g_print("a : a ip port(ex. a 192.168.49.1 2022)\n");
 	g_print("b : set sink device mac address(ex. b f8:d0:bd:7f:e9:7c)\n");
-	g_print("c : set resolution(ex. c 0 (0 : 1920x1080_P30, 1 : 1280x720_P30, 2 : 960x540_P30, 3: 640x360_P30)\n");
+	g_print("c : set resolution(ex. c 1 (1 : 1920x1080_P30, 2 : 1280x720_P30, 3 : (1 +2), 4. 960x540_P30, 64: 640x360_P30, 67: 1+2+64, 71: 1+2+4+64)\n");
 	g_print("f : set connection mode(ex. f 0 (0 : wifi_direct, 1 : Other)\n");
 	g_print("C : Connect\n");
 	g_print("I : dIsconnect\n");

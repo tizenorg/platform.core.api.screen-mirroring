@@ -168,7 +168,7 @@ static void miracast_server_init(MiracastServer *obj)
 	obj->server = NULL;
 	obj->client = NULL;
 	obj->factory = NULL;
-	obj->resolution = -1;
+	obj->resolution = 0;
 }
 
 static void miracast_server_class_init(MiracastServerClass *klass)
@@ -570,6 +570,8 @@ int __miracast_server_start(MiracastServer *server_obj)
 	}
 
 	guint id;
+	guint native_reso = 0;
+	guint supported_reso = 0;
 	GstRTSPWFDServer *server = NULL;
 	GstRTSPMediaFactoryWFD *factory = NULL;
 	GstRTSPMountPoints *mounts = NULL;
@@ -607,31 +609,46 @@ int __miracast_server_start(MiracastServer *server_obj)
 	gst_rtsp_wfd_server_set_audio_codec (server,
 			scmirroring_src_ini_get_structure()->audio_codec);
 
-	if (server_obj->resolution == SCMIRRORING_RESOLUTION_1920x1080_P30) {
-		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_CEA_1920x1080P30);
-	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_1280x720_P30) {
-		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_CEA_1280x720P30);
-	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_960x540_P30) {
-		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_HH_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_HH_960x540P30);
-	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_864x480_P30) {
-		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_HH_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_HH_864x480P30);
-	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_720x480_P60) {
-		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_CEA_720x480P60);
-	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_640x480_P60) {
-		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_CEA_640x480P60);
-	} else if (server_obj->resolution == SCMIRRORING_RESOLUTION_640x360_P30) {
-		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_HH_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server, GST_WFD_HH_640x360P30);
-	} else {
+	/* CEA Resolution */
+	if (server_obj->resolution & SCMIRRORING_RESOLUTION_1920x1080_P30) {
+		native_reso = GST_WFD_VIDEO_CEA_RESOLUTION;
+		supported_reso |= GST_WFD_CEA_1920x1080P30;
+	}
+	if (server_obj->resolution & SCMIRRORING_RESOLUTION_1280x720_P30) {
+		native_reso = GST_WFD_VIDEO_CEA_RESOLUTION;
+		supported_reso |= GST_WFD_CEA_1280x720P30;
+	}
+	if (server_obj->resolution & SCMIRRORING_RESOLUTION_720x480_P60) {
+		native_reso = GST_WFD_VIDEO_CEA_RESOLUTION;
+		supported_reso |= GST_WFD_CEA_720x480P60;
+	}
+	if (server_obj->resolution & SCMIRRORING_RESOLUTION_640x480_P60) {
+		native_reso = GST_WFD_VIDEO_CEA_RESOLUTION;
+		supported_reso |= GST_WFD_CEA_640x480P60;
+	}
+
+	/* HH Resolution */
+	if (server_obj->resolution & SCMIRRORING_RESOLUTION_960x540_P30) {
+		native_reso = GST_WFD_VIDEO_HH_RESOLUTION;
+		supported_reso |= GST_WFD_HH_960x540P30;
+	}
+	if (server_obj->resolution & SCMIRRORING_RESOLUTION_864x480_P30) {
+		native_reso = GST_WFD_VIDEO_HH_RESOLUTION;
+		supported_reso |= GST_WFD_HH_864x480P30;
+	}
+	if (server_obj->resolution & SCMIRRORING_RESOLUTION_640x360_P30) {
+		native_reso = GST_WFD_VIDEO_HH_RESOLUTION;
+		supported_reso |= GST_WFD_HH_640x360P30;
+	}
+
+	if (server_obj->resolution == 0) {
+		/* Use default */
 		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
 		gst_rtsp_wfd_server_set_supported_reso(server,
 		                                       scmirroring_src_ini_get_structure()->video_reso_supported);
+	} else {
+		gst_rtsp_wfd_server_set_video_native_reso(server, native_reso);
+		gst_rtsp_wfd_server_set_supported_reso(server, supported_reso);
 	}
 
 	gst_rtsp_media_factory_wfd_set_dump_ts(factory,
