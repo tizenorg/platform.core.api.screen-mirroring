@@ -125,6 +125,7 @@ typedef struct {
 	int connect_mode;
 	int current_state;
 	scmirroring_state_cb_s *scmirroring_state_cb;
+	scmirroring_multisink_e multisink;
 } scmirroring_src_s;
 
 typedef struct {

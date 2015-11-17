@@ -86,6 +86,15 @@ typedef enum {
 } scmirroring_resolution_e;
 
 /**
+ * @brief Ability to send to multisink.
+ * @since_tizen 3.0
+ */
+typedef enum {
+	SCMIRRORING_MULTISINK_DISABLE,
+	SCMIRRORING_MULTISINK_ENABLE,
+} scmirroring_multisink_e;
+
+/**
  * @brief Enumeration for screen mirroring display surface type.
  * @since_tizen 2.4
  */

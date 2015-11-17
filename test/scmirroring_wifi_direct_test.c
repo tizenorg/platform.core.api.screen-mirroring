@@ -66,6 +66,7 @@ static void __displaymenu(void)
 	g_print("b : set sink device mac address(ex. b f8:d0:bd:7f:e9:7c)\n");
 	g_print("c : set resolution(ex. c 1 (1 : 1920x1080_P30, 2 : 1280x720_P30, 3 : (1 +2), 4. 960x540_P30, 64: 640x360_P30, 67: 1+2+64, 71: 1+2+4+64)\n");
 	g_print("f : set connection mode(ex. f 0 (0 : wifi_direct, 1 : Other)\n");
+	g_print("g : set multisink mode(ex. g 1 (0 : disable, 1 : enable)\n");
 	g_print("C : Connect\n");
 	g_print("I : dIsconnect\n");
 	g_print("S : Start  \n");
@@ -120,6 +121,9 @@ static void __interpret(char *cmd)
 	} else if (strncmp(cmd, "f", 1) == 0) {
 		ret = scmirroring_src_set_connection_mode(g_scmirroring, atoi(value[1]));
 		g_print("Connection mode [%d]\n", atoi(value[1]));
+	} else if (strncmp(cmd, "g", 1) == 0) {
+		ret = scmirroring_src_set_multisink_ability(g_scmirroring, atoi(value[1]));
+		g_print("Multisink mode [%d]\n", atoi(value[1]));
 	} else if (strncmp(cmd, "C", 1) == 0) {
 		g_print("Connect\n");
 		ret = scmirroring_src_connect(g_scmirroring);

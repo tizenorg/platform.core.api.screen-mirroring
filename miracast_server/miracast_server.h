@@ -49,6 +49,7 @@ struct _MiracastServer {
 	void *factory;
 	gint resolution;
 	gint connection_mode;
+	gint multisink;
 
 	gpointer _gst_reserved[GST_PADDING];
 };

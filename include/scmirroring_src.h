@@ -148,6 +148,26 @@ int scmirroring_src_set_resolution(scmirroring_src_h scmirroring_src, scmirrorin
 int scmirroring_src_set_server_name(scmirroring_src_h scmirroring_src, const char *name);
 
 /**
+ * @brief Enables/Disables screen mirroring multisink.
+ *
+ * @param[in] scmirroring_src The handle to screen mirroring source
+ * @param[in] multisink Ability to send to multisink
+ *
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #SCMIRRORING_ERROR_NONE Successful
+ * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #SCMIRRORING_ERROR_OUT_OF_MEMORY Not enough memory is available
+ * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
+ *
+ * @pre Create a screen mirroring source handle by calling scmirroring_src_create().
+ *
+ * @see scmirroring_src_create()
+ */
+int scmirroring_src_set_multisink_ability(scmirroring_src_h scmirroring_src, scmirroring_multisink_e multisink);
+
+/**
  * @brief Connects to server for screen mirroring as source, asynchronously.
  * @details This function launches server and connects to the server for screen mirroring as source to command server to start/pause/resume/stop.
  *

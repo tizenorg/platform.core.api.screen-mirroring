@@ -160,6 +160,7 @@ static void miracast_server_init(MiracastServer *obj)
 	obj->client = NULL;
 	obj->factory = NULL;
 	obj->resolution = 0;
+	obj->multisink = SCMIRRORING_MULTISINK_DISABLE;
 }
 
 static void miracast_server_class_init(MiracastServerClass *klass)
@@ -641,6 +642,8 @@ int __miracast_server_start(MiracastServer *server_obj)
 	}
 
 	gst_rtsp_media_factory_wfd_set_dump_ts(factory, scmirroring_src_ini_get_structure()->dump_ts);
+	if (server_obj->multisink == SCMIRRORING_MULTISINK_ENABLE)
+		gst_rtsp_media_factory_set_shared(GST_RTSP_MEDIA_FACTORY_CAST(factory), TRUE);
 
 	g_object_ref(factory);
 	gst_rtsp_mount_points_add_factory(mounts, TEST_MOUNT_POINT, GST_RTSP_MEDIA_FACTORY(factory));
@@ -724,6 +727,20 @@ void __miracast_server_interpret(MiracastServer *server, gchar *buf)
 		server->resolution = resolution;
 
 		g_strfreev(resolution_info);
+
+		klass->send_response(server, "OK:SET");
+	} else if (g_strrstr(buf, "SET MULTISINK")) {
+		gchar **multisink_info;
+		gint multisink = 0;
+
+		multisink_info = g_strsplit(buf, " ", 0);
+
+		multisink = atoi(multisink_info[2]);
+		scmirroring_debug("Multisink %d", multisink);
+
+		server->multisink = multisink;
+
+		g_strfreev(multisink_info);
 
 		klass->send_response(server, "OK:SET");
 	} else if (g_strrstr(buf, SCMIRRORING_STATE_CMD_PAUSE)) {

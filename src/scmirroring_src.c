@@ -344,6 +344,26 @@ static int __scmirroring_src_send_set_reso(scmirroring_src_h scmirroring)
 	return ret;
 }
 
+static int __scmirroring_src_send_set_multisink(scmirroring_src_h scmirroring)
+{
+	/* Set resolution to miracast server */
+	char *cmd = NULL;
+	int ret = SCMIRRORING_ERROR_NONE;
+	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
+
+	cmd = g_strdup_printf("SET MULTISINK %d", _scmirroring->resolution);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	if (ret != SCMIRRORING_ERROR_NONE) {
+		SCMIRRORING_SAFE_FREE(cmd);
+		scmirroring_error("Failed to be ready [%d]", ret);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+
+	SCMIRRORING_SAFE_FREE(cmd);
+
+	return ret;
+}
+
 int scmirroring_src_create(scmirroring_src_h *scmirroring)
 {
 	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
@@ -370,6 +390,7 @@ int scmirroring_src_create(scmirroring_src_h *scmirroring)
 	_scmirroring->sock_path = NULL;
 	_scmirroring->current_state = SCMIRRORING_STATE_NONE;
 	_scmirroring->server_name = g_strdup("scmirroring");
+	_scmirroring->multisink = SCMIRRORING_MULTISINK_DISABLE;
 
 	*scmirroring = (scmirroring_src_h)_scmirroring;
 
@@ -537,6 +558,29 @@ int scmirroring_src_set_server_name(scmirroring_src_h scmirroring, const char *n
 	return ret;
 }
 
+int scmirroring_src_set_multisink_ability(scmirroring_src_h scmirroring, scmirroring_multisink_e multisink)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+
+	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
+
+	scmirroring_debug_fenter();
+
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+
+	_scmirroring->multisink = multisink;
+
+	if (_scmirroring->connected) {
+		ret = __scmirroring_src_send_set_multisink(_scmirroring);
+	}
+
+	scmirroring_debug_fleave();
+
+	return ret;
+}
+
 int scmirroring_src_connect(scmirroring_src_h scmirroring)
 {
 	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
@@ -639,6 +683,10 @@ try:
 		ret = __scmirroring_src_send_set_ip(_scmirroring);
 		ret = __scmirroring_src_send_set_cm(_scmirroring);
 		ret = __scmirroring_src_send_set_reso(_scmirroring);
+	}
+
+	if (_scmirroring->multisink == SCMIRRORING_MULTISINK_ENABLE) {
+		ret = __scmirroring_src_send_set_multisink(_scmirroring);
 	}
 
 	scmirroring_debug_fleave();
