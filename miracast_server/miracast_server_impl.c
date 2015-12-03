@@ -544,6 +544,30 @@ static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSP
 	klass->send_response(server_obj, "OK:CONNECTED");
 }
 
+static void
+__media_constructed (GstRTSPMediaFactory * factory, GstRTSPMedia * media)
+{
+	guint i, n_streams;
+
+	n_streams = gst_rtsp_media_n_streams (media);
+
+	for (i = 0; i < n_streams; i++) {
+		GstRTSPAddressPool *pool;
+		GstRTSPStream *stream;
+
+		stream = gst_rtsp_media_get_stream (media, i);
+
+		/* make a new address pool */
+		pool = gst_rtsp_address_pool_new ();
+
+		scmirroring_debug("Setting port... ");
+		gst_rtsp_address_pool_add_range (pool, "192.168.49.1", "192.168.49.255", 19000, 19001, 0);
+
+		gst_rtsp_stream_set_address_pool (stream, pool);
+		g_object_unref (pool);
+	}
+}
+
 int __miracast_server_start(MiracastServer *server_obj)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
@@ -644,6 +668,8 @@ int __miracast_server_start(MiracastServer *server_obj)
 	gst_rtsp_media_factory_wfd_set_dump_ts(factory, scmirroring_src_ini_get_structure()->dump_ts);
 	if (server_obj->multisink == SCMIRRORING_MULTISINK_ENABLE)
 		gst_rtsp_media_factory_set_shared(GST_RTSP_MEDIA_FACTORY_CAST(factory), TRUE);
+
+	g_signal_connect (GST_RTSP_MEDIA_FACTORY(factory), "media-constructed", (GCallback) __media_constructed, NULL);
 
 	g_object_ref(factory);
 	gst_rtsp_mount_points_add_factory(mounts, TEST_MOUNT_POINT, GST_RTSP_MEDIA_FACTORY(factory));
