@@ -46,6 +46,7 @@
 #define MIRACAST_WFD_SOURCE_OFF 0
 
 #define TEST_MOUNT_POINT  "/wfd1.0/streamid=0"
+#define WFD_REQUIREMENT "org.wfa.wfd1.0"
 
 
 static const GDBusMethodInfo scmirroring_server_method_info_method = {
@@ -527,6 +528,24 @@ __teardown_req(GstRTSPClient *client, GstRTSPContext *ctx)
 	return;
 }
 
+static gchar*
+__check_requirements_cb (GstRTSPClient * client, GstRTSPContext * ctx, gchar ** req, gpointer user_data)
+{
+	int index = 0;
+	GString *result = g_string_new ("");
+
+	while (req[index] != NULL) {
+		if (g_strcmp0 (req[index], WFD_REQUIREMENT)) {
+			if (result->len > 0)
+				g_string_append (result, ", ");
+			g_string_append (result, req[index]);
+		}
+		index++;
+	}
+
+	return  g_string_free (result, FALSE);
+}
+
 static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSPClient *client, gpointer user_data)
 {
 	MiracastServer *server_obj = (MiracastServer *)user_data;
@@ -539,6 +558,7 @@ static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSP
 	g_signal_connect(G_OBJECT(client), "teardown-request", G_CALLBACK(__teardown_req), NULL);
 	g_signal_connect(G_OBJECT(client), "closed", G_CALLBACK(__client_closed), NULL);
 	g_signal_connect(G_OBJECT(client), "new-session", G_CALLBACK(__new_session), NULL);
+	g_signal_connect(G_OBJECT(client), "check-requirements", G_CALLBACK(__check_requirements_cb), NULL);
 
 	/* Sending connected response to client */
 	klass->send_response(server_obj, "OK:CONNECTED");
