@@ -658,8 +658,7 @@ int __miracast_server_start(MiracastServer *server_obj)
 	if (server_obj->resolution == 0) {
 		/* Use default */
 		gst_rtsp_wfd_server_set_video_native_reso(server, GST_WFD_VIDEO_CEA_RESOLUTION);
-		gst_rtsp_wfd_server_set_supported_reso(server,
-		                                       scmirroring_src_ini_get_structure()->video_reso_supported);
+		gst_rtsp_wfd_server_set_supported_reso(server, scmirroring_src_ini_get_structure()->video_reso_supported);
 	} else {
 		gst_rtsp_wfd_server_set_video_native_reso(server, native_reso);
 		gst_rtsp_wfd_server_set_supported_reso(server, supported_reso);
