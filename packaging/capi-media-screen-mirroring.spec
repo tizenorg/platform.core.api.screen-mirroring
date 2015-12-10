@@ -62,6 +62,8 @@ mkdir -p %{buildroot}/usr/share/dbus-1/system-services/
 install -m 755 org.tizen.scmirroring.server.service %{buildroot}/usr/share/dbus-1/system-services/
 mkdir -p %{buildroot}/%{_datadir}/license
 cp -rf %{_builddir}/%{name}-%{version}/LICENSE.APLv2.0 %{buildroot}%{_datadir}/license/%{name}
+mkdir -p %{buildroot}/etc/dbus-1/system.d/
+cp -rf %{_builddir}/%{name}-%{version}/packaging/org.tizen.scmirroring.server.conf %{buildroot}/etc/dbus-1/system.d/
 
 #License
 mkdir -p %{buildroot}/%{_datadir}/license
@@ -84,6 +86,7 @@ cp -rf config/scmirroring_src.ini %{buildroot}/usr/etc/scmirroring_src.ini
 %{_datadir}/license/%{name}
 %{_bindir}/miracast_server
 /usr/etc/scmirroring_src.ini
+/etc/dbus-1/system.d/org.tizen.scmirroring.server.conf
 
 %files devel
 %{_includedir}/media/scmirroring_src.h
