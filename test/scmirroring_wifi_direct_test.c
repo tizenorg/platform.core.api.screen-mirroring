@@ -226,7 +226,7 @@ void _activation_cb(int error_code, wifi_direct_device_state_e device_state, voi
 				g_print("__start_wifi_display_connection fail\n");
 				g_print("Quit Program\n");
 				ret = wifi_direct_deinitialize();
-				if(ret != WIFI_DIRECT_ERROR_NONE)
+				if (ret != WIFI_DIRECT_ERROR_NONE)
 					g_print("wifi_direct_deinitialize is failed\n");
 
 				g_scmirroring = 0;
@@ -343,7 +343,7 @@ static gboolean __start_wifi_display_connection()
 	static int is_initialized = FALSE;
 	gint ret = FALSE;
 
-	if(is_initialized == TRUE)
+	if (is_initialized == TRUE)
 		return TRUE;
 	is_initialized = TRUE;
 
