@@ -396,13 +396,9 @@ static gboolean __miracast_server_ready_channel(int *sockfd)
 	}
 
 	/*change permission of sock file*/
-	if (chmod(MEDIA_IPC_PATH, 0770) < 0) {
+	if (chmod(MEDIA_IPC_PATH, 0666) < 0) {
 		strerror_r(errno, buf, sizeof(buf));
 		scmirroring_error("chmod failed [%s]", buf);
-	}
-	if (chown(MEDIA_IPC_PATH, 200, 5000) < 0) {
-		strerror_r(errno, buf, sizeof(buf));
-		scmirroring_error("chown failed [%s]", buf);
 	}
 
 	scmirroring_debug("Listening...");
@@ -564,9 +560,13 @@ static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSP
 	klass->send_response(server_obj, "OK:CONNECTED");
 }
 
-static void __media_constructed(GstRTSPMediaFactory * factory, GstRTSPMedia * media)
+static void __media_constructed(GstRTSPMediaFactory * factory, GstRTSPMedia * media, gpointer user_data)
 {
 	guint i, n_streams;
+	MiracastServer *server_obj = (MiracastServer *)user_data;
+
+	if (!server_obj && !server_obj->ip)
+		return;
 
 	n_streams = gst_rtsp_media_n_streams(media);
 
@@ -579,8 +579,8 @@ static void __media_constructed(GstRTSPMediaFactory * factory, GstRTSPMedia * me
 		/* make a new address pool */
 		pool = gst_rtsp_address_pool_new();
 
-		scmirroring_debug("Setting port... ");
-		gst_rtsp_address_pool_add_range(pool, "192.168.49.1", "192.168.49.255", 19000, 19001, 0);
+		scmirroring_debug("Setting IP:%s... ", server_obj->ip);
+		gst_rtsp_address_pool_add_range(pool, server_obj->ip, server_obj->ip, 19000, 19001, 0);
 
 		gst_rtsp_stream_set_address_pool(stream, pool);
 		g_object_unref(pool);
@@ -687,7 +687,7 @@ int __miracast_server_start(MiracastServer *server_obj)
 	if (server_obj->multisink == SCMIRRORING_MULTISINK_ENABLE)
 		gst_rtsp_media_factory_set_shared(GST_RTSP_MEDIA_FACTORY_CAST(factory), TRUE);
 
-	g_signal_connect(GST_RTSP_MEDIA_FACTORY(factory), "media-constructed", (GCallback) __media_constructed, NULL);
+	g_signal_connect(GST_RTSP_MEDIA_FACTORY(factory), "media-constructed", (GCallback) __media_constructed, server_obj);
 
 	g_object_ref(factory);
 	gst_rtsp_mount_points_add_factory(mounts, TEST_MOUNT_POINT, GST_RTSP_MEDIA_FACTORY(factory));
