@@ -31,26 +31,35 @@
 #define SUBMENU_GETTING_STREAM_INFO 2
 #define SUBMENU_SETTING_SINK 3
 
-#define TEST_WITH_WIFI_DIRECT
+//#define TEST_WITH_WIFI_DIRECT
 
 #define PACKAGE "screen_mirroring_sink_test"
 static int app_create(void *data);
 static int app_terminate(void *data);
-static Evas_Object* _create_win(const char *name);
-static Evas_Object *create_evas_image_object(Evas_Object *eo_parent);
-static void _win_del(void *data, Evas_Object *obj, void *event);
+
 static gboolean _scmirroring_start_jobs(gpointer data);
 
 struct appcore_ops ops = {
 		.create = app_create,
 		.terminate = app_terminate,
 };
-static Evas_Object* g_evas;
-static Evas_Object* g_eo = NULL;
+
+/* for video display */
+Evas_Object* g_xid;
+Evas_Object* g_eo_win;
+Evas_Object* g_eo;
+
+struct appdata
+{
+	Evas_Object *win;
+	Evas_Object *bg;
+	Evas_Object *rect;
+	Evas_Object *layout_main; /* layout widget based on EDJ */
+};
 
 scmirroring_sink_h g_scmirroring = NULL;
 gint g_resolution = 0;
-gint g_sinktype = -1;
+gint g_sinktype = 0;
 
 gint g_menu = MAIN_MENU;
 
@@ -89,31 +98,48 @@ gboolean __timeout_sink_submenu_display(void *data);
 static void __display_sink_submenu(void);
 static void __interpret_sink_submenu(char *cmd);
 
-static void _win_del(void *data, Evas_Object *obj, void *event)
+static Evas_Object *create_bg(Evas_Object *pParent)
+{
+	if(!pParent) {
+		return NULL;
+	}
+
+	Evas_Object *pObj = NULL;
+
+	pObj = elm_bg_add(pParent);
+	evas_object_size_hint_weight_set(pObj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	elm_win_resize_object_add(pParent, pObj);
+	evas_object_color_set(pObj, 0, 0, 0, 0);
+	evas_object_show(pObj);
+	return pObj;
+}
+
+static void win_del(void *data, Evas_Object *obj, void *event)
 {
 	elm_exit();
 }
 
-
-static Evas_Object* _create_win(const char *name)
+static Evas_Object* create_win(const char *name)
 {
 	Evas_Object *eo = NULL;
 
-	g_printf("[%s][%d] name=%s\n", __func__, __LINE__, name);
+	printf ("[%s][%d] name=%s\n", __func__, __LINE__, name);
 
 	eo = elm_win_add(NULL, name, ELM_WIN_BASIC);
 	if (eo) {
 		elm_win_title_set(eo, name);
 		elm_win_borderless_set(eo, EINA_TRUE);
-		evas_object_smart_callback_add(eo, "delete,request", _win_del, NULL);
+		evas_object_smart_callback_add(eo, "delete,request",win_del, NULL);
 		elm_win_autodel_set(eo, EINA_TRUE);
 	}
+
+	printf ("[%s][%d] name=%s end\n", __func__, __LINE__, name);
 	return eo;
 }
 
-static Evas_Object *create_evas_image_object(Evas_Object *eo_parent)
+static Evas_Object *create_image_object(Evas_Object *eo_parent)
 {
-	if (!eo_parent) {
+	if(!eo_parent) {
 		return NULL;
 	}
 	Evas *evas = evas_object_evas_get(eo_parent);
@@ -124,42 +150,79 @@ static Evas_Object *create_evas_image_object(Evas_Object *eo_parent)
 	return eo;
 }
 
+static Evas_Object *create_render_rect(Evas_Object *pParent)
+{
+	if(!pParent) {
+		return NULL;
+	}
+
+	Evas *pEvas = evas_object_evas_get(pParent);
+	Evas_Object *pObj = evas_object_rectangle_add(pEvas);
+	if(pObj == NULL) {
+		return NULL;
+	}
+
+	evas_object_size_hint_weight_set(pObj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_color_set(pObj, 0, 0, 0, 0);
+	evas_object_render_op_set(pObj, EVAS_RENDER_COPY);
+	evas_object_show(pObj);
+	elm_win_resize_object_add(pParent, pObj);
+
+	return pObj;
+}
+
 static int app_create(void *data)
 {
-
 	gboolean result = FALSE;
-
-	g_print("app_create enter");
-
+	struct appdata *ad = data;
 	Evas_Object *win = NULL;
+
 	/* create window */
-	win = _create_win(PACKAGE);
+	win = create_win(PACKAGE);
 	if (win == NULL)
-		return -1;
-	g_evas = win;
+			return -1;
+	ad->win = win;
+	g_eo_win = win;
+	ad->bg = create_bg(ad->win);
+	ad->rect = create_render_rect(ad->win);
+	g_xid = ad->win;
+
+	/* Create evas image object for EVAS surface */
+	g_eo = create_image_object(ad->win);
+	evas_object_image_size_set(g_eo, 500, 500);
+	evas_object_image_fill_set(g_eo, 0, 0, 500, 500);
+	evas_object_resize(g_eo, 500, 500);
 
 	elm_win_activate(win);
 	evas_object_show(win);
 
 	result = _scmirroring_start_jobs((void *)NULL);
 	if (result != TRUE) {
-		g_print("failed _scmirroring_start_jobs ");
+		g_print("failed _scmirroring_start_jobs\n");
 	}
 
-	g_print("app_create leave");
-
 	return result;
-
 }
 static int app_terminate(void *data)
 {
-	if (g_evas) {
-		evas_object_del(g_evas);
-		g_evas = NULL;
+	struct appdata *ad = data;
+
+	if (g_eo)
+	{
+		evas_object_del(g_eo);
+		g_eo = NULL;
 	}
+
+	if (g_eo_win) {
+		evas_object_del(g_eo_win);
+		g_eo_win = NULL;
+	}
+	ad->win = NULL;
 
 	return 0;
 }
+
+struct appdata ad;
 
 gboolean __timeout_sink_submenu_display(void *data)
 {
@@ -881,7 +944,6 @@ static gboolean __disconnect_p2p_connection(void)
 }
 #endif
 
-#ifndef TEST_WITH_WIFI_DIRECT
 static int __scmirroring_sink_create(gpointer data)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
@@ -892,26 +954,6 @@ static int __scmirroring_sink_create(gpointer data)
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
-	ret = scmirroring_sink_prepare(g_scmirroring);
-	if (ret != SCMIRRORING_ERROR_NONE) {
-		g_print("scmirroring_sink_prepare fail [%d]", ret);
-		return SCMIRRORING_ERROR_INVALID_OPERATION;
-	}
-	return ret;
-}
-#endif
-
-gboolean __scmirroring_sink_start(gpointer data)
-{
-	int ret = SCMIRRORING_ERROR_NONE;
-
-#ifdef TEST_WITH_WIFI_DIRECT
-	ret = scmirroring_sink_create(&g_scmirroring);
-	if (ret != SCMIRRORING_ERROR_NONE) {
-		g_print("scmirroring_sink_create fail [%d]", ret);
-		return FALSE;
-	}
-
 	if (g_resolution != 0) {
 		ret = scmirroring_sink_set_resolution(g_scmirroring, g_resolution);
 		if (ret != SCMIRRORING_ERROR_NONE) {
@@ -919,31 +961,34 @@ gboolean __scmirroring_sink_start(gpointer data)
 		}
 	}
 
-	if (g_sinktype != -1) {
-		if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
-			evas_object_show(g_evas);
-			ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_OVERLAY, (void *)g_evas);
-		} else if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_EVAS) {
-			g_eo = create_evas_image_object(g_evas);
-
-			evas_object_image_size_set(g_eo, 800, 1200);
-			evas_object_image_fill_set(g_eo, 0, 0, 800, 1200);
-			evas_object_resize(g_eo, 800, 1200);
-			evas_object_show(g_evas);
-			ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_EVAS, (void *)g_eo);
-		}
-
-		if (ret != SCMIRRORING_ERROR_NONE) {
-			g_print("scmirroring_sink_set_display fail [%d]", ret);
-			return SCMIRRORING_ERROR_INVALID_OPERATION;
-		}
-
+	if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
+		evas_object_show(g_eo_win);
+		ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_OVERLAY, (void *)g_eo_win);
+	} else if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_EVAS) {
+		evas_object_image_size_set(g_eo, 800, 1200);
+		evas_object_image_fill_set(g_eo, 0, 0, 800, 1200);
+		evas_object_resize(g_eo, 800, 1200);
+		evas_object_show(g_eo_win);
+		ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_EVAS, (void *)g_eo);
 	}
 
 	ret = scmirroring_sink_prepare(g_scmirroring);
 	if (ret != SCMIRRORING_ERROR_NONE) {
 		g_print("scmirroring_sink_prepare fail [%d]", ret);
-		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+	return ret;
+}
+
+gboolean __scmirroring_sink_start(gpointer data)
+{
+	int ret = SCMIRRORING_ERROR_NONE;
+
+#ifdef TEST_WITH_WIFI_DIRECT
+	ret = __scmirroring_sink_create(NULL);
+	if (ret != SCMIRRORING_ERROR_NONE) {
+		g_print("__scmirroring_sink_create fail [%d]", ret);
+		return FALSE;
 	}
 
 	ret = scmirroring_sink_set_ip_and_port(g_scmirroring, g_peer_ip, g_peer_port);
@@ -951,6 +996,8 @@ gboolean __scmirroring_sink_start(gpointer data)
 		g_print("scmirroring_sink_set_ip_and_port fail [%d]", ret);
 		return FALSE;
 	}
+
+	g_print("Input server IP and port number IP[%s] Port[%s]\n", g_peer_ip, g_peer_port);
 #endif
 
 	ret = scmirroring_sink_set_state_changed_cb(g_scmirroring, scmirroring_sink_state_callback, NULL);
@@ -985,17 +1032,13 @@ int main(int argc, char *argv[])
 {
 	GIOChannel *stdin_channel;
 
-
 	stdin_channel = g_io_channel_unix_new(0);
 	g_io_channel_set_flags(stdin_channel, G_IO_FLAG_NONBLOCK, NULL);
 	g_io_add_watch(stdin_channel, G_IO_IN, (GIOFunc)__input, NULL);
 
 	__displaymenu();
 
-	ops.data = NULL;
-	appcore_efl_main(PACKAGE, &argc, &argv, &ops);
-
-	g_print("Exit Program");
-
-	return 0;
+	memset(&ad, 0x0, sizeof(struct appdata));
+	ops.data = &ad;
+	return appcore_efl_main(PACKAGE, &argc, &argv, &ops);
 }
