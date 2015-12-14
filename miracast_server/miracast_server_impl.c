@@ -524,22 +524,21 @@ __teardown_req(GstRTSPClient *client, GstRTSPContext *ctx)
 	return;
 }
 
-static gchar*
-__check_requirements_cb (GstRTSPClient * client, GstRTSPContext * ctx, gchar ** req, gpointer user_data)
+static gchar* __check_requirements_cb(GstRTSPClient * client, GstRTSPContext * ctx, gchar ** req, gpointer user_data)
 {
 	int index = 0;
-	GString *result = g_string_new ("");
+	GString *result = g_string_new("");
 
 	while (req[index] != NULL) {
-		if (g_strcmp0 (req[index], WFD_REQUIREMENT)) {
+		if (g_strcmp0(req[index], WFD_REQUIREMENT)) {
 			if (result->len > 0)
-				g_string_append (result, ", ");
-			g_string_append (result, req[index]);
+				g_string_append(result, ", ");
+			g_string_append(result, req[index]);
 		}
 		index++;
 	}
 
-	return  g_string_free (result, FALSE);
+	return  g_string_free(result, FALSE);
 }
 
 static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSPClient *client, gpointer user_data)
