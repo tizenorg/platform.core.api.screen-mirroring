@@ -49,8 +49,7 @@ Evas_Object* g_xid;
 Evas_Object* g_eo_win;
 Evas_Object* g_eo;
 
-struct appdata
-{
+struct appdata {
 	Evas_Object *win;
 	Evas_Object *bg;
 	Evas_Object *rect;
@@ -100,9 +99,8 @@ static void __interpret_sink_submenu(char *cmd);
 
 static Evas_Object *create_bg(Evas_Object *pParent)
 {
-	if(!pParent) {
+	if (!pParent)
 		return NULL;
-	}
 
 	Evas_Object *pObj = NULL;
 
@@ -123,25 +121,25 @@ static Evas_Object* create_win(const char *name)
 {
 	Evas_Object *eo = NULL;
 
-	printf ("[%s][%d] name=%s\n", __func__, __LINE__, name);
+	printf("[%s][%d] name=%s\n", __func__, __LINE__, name);
 
 	eo = elm_win_add(NULL, name, ELM_WIN_BASIC);
 	if (eo) {
 		elm_win_title_set(eo, name);
 		elm_win_borderless_set(eo, EINA_TRUE);
-		evas_object_smart_callback_add(eo, "delete,request",win_del, NULL);
+		evas_object_smart_callback_add(eo, "delete,request", win_del, NULL);
 		elm_win_autodel_set(eo, EINA_TRUE);
 	}
 
-	printf ("[%s][%d] name=%s end\n", __func__, __LINE__, name);
+	printf("[%s][%d] name=%s end\n", __func__, __LINE__, name);
 	return eo;
 }
 
 static Evas_Object *create_image_object(Evas_Object *eo_parent)
 {
-	if(!eo_parent) {
+	if (!eo_parent)
 		return NULL;
-	}
+
 	Evas *evas = evas_object_evas_get(eo_parent);
 	Evas_Object *eo = NULL;
 
@@ -152,13 +150,12 @@ static Evas_Object *create_image_object(Evas_Object *eo_parent)
 
 static Evas_Object *create_render_rect(Evas_Object *pParent)
 {
-	if(!pParent) {
+	if (!pParent)
 		return NULL;
-	}
 
 	Evas *pEvas = evas_object_evas_get(pParent);
 	Evas_Object *pObj = evas_object_rectangle_add(pEvas);
-	if(pObj == NULL) {
+	if (pObj == NULL) {
 		return NULL;
 	}
 
@@ -207,8 +204,7 @@ static int app_terminate(void *data)
 {
 	struct appdata *ad = data;
 
-	if (g_eo)
-	{
+	if (g_eo) {
 		evas_object_del(g_eo);
 		g_eo = NULL;
 	}
