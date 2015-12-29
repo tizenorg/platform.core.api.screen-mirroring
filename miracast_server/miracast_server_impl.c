@@ -481,6 +481,7 @@ gint miracast_server_gst_init()
 	for (i = 0; i < *argc; i++) {
 		SCMIRRORING_SAFE_FREE(argv[i]);
 	}
+	SCMIRRORING_SAFE_FREE(argv);
 	SCMIRRORING_SAFE_FREE(argc);
 
 	return SCMIRRORING_ERROR_NONE;
@@ -489,6 +490,7 @@ ERROR:
 	for (i = 0; i < *argc; i++) {
 		SCMIRRORING_SAFE_FREE(argv[i]);
 	}
+	SCMIRRORING_SAFE_FREE(argv);
 	SCMIRRORING_SAFE_FREE(argc);
 	return SCMIRRORING_ERROR_INVALID_OPERATION;
 }
@@ -564,7 +566,7 @@ static void __media_constructed(GstRTSPMediaFactory * factory, GstRTSPMedia * me
 	guint i, n_streams;
 	MiracastServer *server_obj = (MiracastServer *)user_data;
 
-	if (!server_obj && !server_obj->ip)
+	if (!server_obj || !server_obj->ip)
 		return;
 
 	n_streams = gst_rtsp_media_n_streams(media);
