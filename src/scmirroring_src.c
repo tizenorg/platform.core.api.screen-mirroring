@@ -148,7 +148,7 @@ static int __miracast_server_launch(scmirroring_src_s *scmirroring)
 	}
 
 	scmirroring_debug("Miracast server is launched successfully");
-
+	g_object_unref(conn);
 	return ret;
 }
 
