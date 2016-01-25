@@ -133,7 +133,7 @@ static int __miracast_server_launch(scmirroring_src_s *scmirroring)
 	g_free(name);
 	g_free(if_name);
 	g_free(obj_path);
-
+	g_object_unref(conn);
 	if (error) {
 		scmirroring_error("g_dbus_proxy_new_sync failed : %s", error->message);
 		g_error_free(error);
