@@ -543,6 +543,21 @@ static gchar* __check_requirements_cb(GstRTSPClient * client, GstRTSPContext * c
 	return  g_string_free(result, FALSE);
 }
 
+static void __playing_done(GstRTSPClient *client, gpointer user_data)
+{
+	if (client == NULL) return;
+	MiracastServer *server_obj = (MiracastServer *)user_data;
+	MiracastServerClass *klass;
+	klass = MIRACAST_SERVER_GET_CLASS(server_obj);
+
+	scmirroring_debug("client %p: playing_done", client);
+
+	klass->send_response(server_obj, "OK:PLAYING");
+
+	return;
+}
+
+
 static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSPClient *client, gpointer user_data)
 {
 	MiracastServer *server_obj = (MiracastServer *)user_data;
@@ -556,6 +571,7 @@ static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSP
 	g_signal_connect(G_OBJECT(client), "closed", G_CALLBACK(__client_closed), NULL);
 	g_signal_connect(G_OBJECT(client), "new-session", G_CALLBACK(__new_session), NULL);
 	g_signal_connect(G_OBJECT(client), "check-requirements", G_CALLBACK(__check_requirements_cb), NULL);
+	g_signal_connect(G_OBJECT(client), "wfd-playing-done", G_CALLBACK(__playing_done), server_obj);
 
 	/* Sending connected response to client */
 	klass->send_response(server_obj, "OK:CONNECTED");

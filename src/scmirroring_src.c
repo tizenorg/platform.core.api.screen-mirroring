@@ -183,6 +183,8 @@ static int __scmirroring_src_get_status(gchar *str)
 		return SCMIRRORING_STATE_CONNECTION_WAIT;
 	} else if (g_strrstr(str, "CONNECTED")) {
 		return SCMIRRORING_STATE_CONNECTED;
+	} else if (g_strrstr(str, "PLAYING")) {
+		return SCMIRRORING_STATE_PLAYING;
 	} else if (g_strrstr(str, "SET")) {
 		return SCMIRRORING_STATE_READY;
 	} else if (g_strrstr(str, SCMIRRORING_STATE_CMD_PAUSE)) {
