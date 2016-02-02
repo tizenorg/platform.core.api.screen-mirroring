@@ -113,6 +113,7 @@ scmirroring_src_ini_load(void)
 		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_device, "general:qcmsmaudio device name", DEFAULT_AUDIO_DEVICE_NAME);
 		g_scmirroring_src_ini.audio_buffer_time = iniparser_getint(dict, "general:qcmsmaudio buffer_time", DEFAULT_AUDIO_BUFFER_TIME);
 #endif
+		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_device_property, "general:audio properties name", DEFAULT_AUDIO_DEVICE_PROPERTY_NAME);
 		g_scmirroring_src_ini.audio_latency_time = iniparser_getint(dict, "general:audio latency_time", DEFAULT_AUDIO_LATENCY_TIME);
 		g_scmirroring_src_ini.audio_do_timestamp = iniparser_getint(dict, "general:audio do_timestamp", DEFAULT_AUDIO_DO_TIMESTAMP);
 		SCMIRRORING_INI_GET_STRING(temp, "general:video resolution_supported", "");
@@ -166,6 +167,7 @@ scmirroring_src_ini_load(void)
 		g_scmirroring_src_ini.provide_clock = DEFAULT_PROVIDE_CLOCK;
 
 		strncpy(g_scmirroring_src_ini.name_of_audio_device, DEFAULT_AUDIO_DEVICE_NAME, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
+		strncpy(g_scmirroring_src_ini.name_of_audio_device_property, DEFAULT_AUDIO_DEVICE_PROPERTY_NAME, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
 		g_scmirroring_src_ini.audio_latency_time = DEFAULT_AUDIO_LATENCY_TIME;
 		g_scmirroring_src_ini.audio_buffer_time = DEFAULT_AUDIO_BUFFER_TIME;
 		g_scmirroring_src_ini.audio_do_timestamp = DEFAULT_AUDIO_DO_TIMESTAMP;
@@ -213,6 +215,7 @@ scmirroring_src_ini_load(void)
 	scmirroring_debug("name_of_video_converter : %s\n", g_scmirroring_src_ini.name_of_video_converter);
 
 	scmirroring_debug("audio device name : %s\n", g_scmirroring_src_ini.name_of_audio_device);
+	scmirroring_debug("audio device property name : %s\n", g_scmirroring_src_ini.name_of_audio_device_property);
 	scmirroring_debug("audio latency_time : %d\n", g_scmirroring_src_ini.audio_latency_time);
 	scmirroring_debug("audio buffer_time : %d\n", g_scmirroring_src_ini.audio_buffer_time);
 	scmirroring_debug("audio do_timestamp : %d\n", g_scmirroring_src_ini.audio_do_timestamp);

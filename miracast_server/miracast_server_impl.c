@@ -644,7 +644,8 @@ int __miracast_server_start(MiracastServer *server_obj)
 
 	gst_rtsp_media_factory_wfd_set(factory,
 							scmirroring_src_ini_get_structure()->videosrc_element,
-							scmirroring_src_ini_get_structure()->name_of_audio_device,
+							//scmirroring_src_ini_get_structure()->name_of_audio_device,
+							scmirroring_src_ini_get_structure()->name_of_audio_device_property,
 							scmirroring_src_ini_get_structure()->audio_latency_time,
 							scmirroring_src_ini_get_structure()->audio_buffer_time,
 							scmirroring_src_ini_get_structure()->audio_do_timestamp,

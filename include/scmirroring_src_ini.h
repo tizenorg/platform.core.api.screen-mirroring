@@ -82,6 +82,7 @@ typedef struct __scmirroring_src_ini {
 	gint mtu_size;
 
 	gchar name_of_audio_device[SCMIRRORING_SRC_INI_MAX_STRLEN];
+	gchar name_of_audio_device_property[SCMIRRORING_SRC_INI_MAX_STRLEN];
 	gchar name_of_audio_encoder_aac[SCMIRRORING_SRC_INI_MAX_STRLEN];
 	gchar name_of_audio_encoder_ac3[SCMIRRORING_SRC_INI_MAX_STRLEN];
 	guint audio_codec;
@@ -117,6 +118,7 @@ typedef struct __scmirroring_src_ini {
 #define DEFAULT_VIDEO_CONVERTER				""
 /* hw accel */
 #define DEFAULT_AUDIO_DEVICE_NAME "alsa_output.0.analog-stereo.monitor"
+#define DEFAULT_AUDIO_DEVICE_PROPERTY_NAME "props,media.role=loopback-mirroring"
 #define DEFAULT_AUDIOENC_AAC				"avenc_aac"
 #define DEFAULT_AUDIOENC_AC3				"avenc_ac3"
 #define DEFAULT_AUDIO_CODEC	2
