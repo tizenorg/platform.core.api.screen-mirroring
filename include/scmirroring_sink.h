@@ -37,7 +37,6 @@ extern "C" {
  * @brief Creates a new screen mirroring sink handle.
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @remarks You must release @a scmirroring_sink using scmirroring_sink_destroy().
  *
@@ -164,7 +163,6 @@ int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, int res
  * @brief Prepares the screen mirroring sink handle and allocates specific resources.
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -342,7 +340,6 @@ int scmirroring_sink_disconnect(scmirroring_sink_h scmirroring_sink);
  *
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -417,7 +414,6 @@ int scmirroring_sink_destroy(scmirroring_sink_h scmirroring_sink);
  *
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] codec Codec of video
@@ -444,7 +440,6 @@ int scmirroring_sink_get_negotiated_video_codec(scmirroring_sink_h *scmirroring_
  *
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] width Width of video
@@ -472,7 +467,6 @@ int scmirroring_sink_get_negotiated_video_resolution(scmirroring_sink_h *scmirro
  *
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] frame_rate Frame rate of video
@@ -499,7 +493,6 @@ int scmirroring_sink_get_negotiated_video_frame_rate(scmirroring_sink_h *scmirro
  *
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] codec Codec of audio
@@ -526,7 +519,6 @@ int scmirroring_sink_get_negotiated_audio_codec(scmirroring_sink_h *scmirroring_
  *
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] channel Channel of audio
@@ -553,7 +545,6 @@ int scmirroring_sink_get_negotiated_audio_channel(scmirroring_sink_h *scmirrorin
  *
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] sample_rate Sample rate of audio
@@ -580,7 +571,6 @@ int scmirroring_sink_get_negotiated_audio_sample_rate(scmirroring_sink_h *scmirr
  *
  * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://tizen.org/privilege/internet
  *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] bitwidth Bitwidth of audio
