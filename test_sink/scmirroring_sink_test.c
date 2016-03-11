@@ -30,35 +30,28 @@
 #define SUBMENU_RESOLUTION 1
 #define SUBMENU_GETTING_STREAM_INFO 2
 #define SUBMENU_SETTING_SINK 3
+#define SUBMENU_SETTING_WINDOW_SIZE 4
 
-//#define TEST_WITH_WIFI_DIRECT
+#define TEST_WITH_WIFI_DIRECT
 
 #define PACKAGE "screen_mirroring_sink_test"
 static int app_create(void *data);
 static int app_terminate(void *data);
-
+static Evas_Object* _create_win(const char *name);
+static Evas_Object *create_evas_image_object(Evas_Object *eo_parent);
+static void _win_del(void *data, Evas_Object *obj, void *event);
 static gboolean _scmirroring_start_jobs(gpointer data);
 
 struct appcore_ops ops = {
 		.create = app_create,
 		.terminate = app_terminate,
 };
-
-/* for video display */
-Evas_Object* g_xid;
-Evas_Object* g_eo_win;
-Evas_Object* g_eo;
-
-struct appdata {
-	Evas_Object *win;
-	Evas_Object *bg;
-	Evas_Object *rect;
-	Evas_Object *layout_main; /* layout widget based on EDJ */
-};
+static Evas_Object* g_evas;
+static Evas_Object* g_eo = NULL;
 
 scmirroring_sink_h g_scmirroring = NULL;
 gint g_resolution = 0;
-gint g_sinktype = 0;
+gint g_sinktype = SCMIRRORING_DISPLAY_TYPE_OVERLAY;
 
 gint g_menu = MAIN_MENU;
 
@@ -66,6 +59,7 @@ gint g_menu = MAIN_MENU;
 static int g_peer_cnt = 0;
 static char g_peer_ip[32];
 static char g_peer_port[32];
+static char g_src_mac_addr[18] = {0, };
 #define DEFAULT_SCREEN_MIRRORING_PORT 2022
 #endif
 
@@ -96,50 +90,73 @@ static void __interpret_stream_info_submenu(char *cmd);
 gboolean __timeout_sink_submenu_display(void *data);
 static void __display_sink_submenu(void);
 static void __interpret_sink_submenu(char *cmd);
+static void create_render_rect_and_bg(Evas_Object *win);
 
-static Evas_Object *create_bg(Evas_Object *pParent)
+/* Submenu for setting window size */
+gboolean __timeout_window_size_submenu_display(void *data);
+static void __display_window_size_submenu(void);
+static void __interpret_window_size_submenu(char *cmd);
+
+static void create_render_rect_and_bg(Evas_Object *win);
+void create_render_rect_and_bg(Evas_Object *win)
 {
-	if (!pParent)
-		return NULL;
+	if (!win) {
+		g_print("no win");
+		return;
+	}
+	Evas_Object *bg, *rect;
 
-	Evas_Object *pObj = NULL;
+	bg = elm_bg_add(win);
+	elm_win_resize_object_add(win, bg);
+	evas_object_size_hint_weight_set(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_show(bg);
 
-	pObj = elm_bg_add(pParent);
-	evas_object_size_hint_weight_set(pObj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	elm_win_resize_object_add(pParent, pObj);
-	evas_object_color_set(pObj, 0, 0, 0, 0);
-	evas_object_show(pObj);
-	return pObj;
+	rect = evas_object_rectangle_add(evas_object_evas_get(win));
+	if (!rect) {
+		g_print("no rect");
+		return;
+	}
+	evas_object_color_set(rect, 0, 0, 0, 0);
+	evas_object_render_op_set(rect, EVAS_RENDER_COPY);
+
+	elm_win_resize_object_add(win, rect);
+	evas_object_size_hint_weight_set(rect, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_show(rect);
+	evas_object_show(win);
 }
 
-static void win_del(void *data, Evas_Object *obj, void *event)
+static void _win_del(void *data, Evas_Object *obj, void *event)
 {
 	elm_exit();
 }
 
-static Evas_Object* create_win(const char *name)
+
+static Evas_Object* _create_win(const char *name)
 {
 	Evas_Object *eo = NULL;
+	int w = 0;
+	int h = 0;
 
-	printf("[%s][%d] name=%s\n", __func__, __LINE__, name);
+	g_printf ("[%s][%d] name=%s\n", __func__, __LINE__, name);
 
 	eo = elm_win_add(NULL, name, ELM_WIN_BASIC);
 	if (eo) {
 		elm_win_title_set(eo, name);
 		elm_win_borderless_set(eo, EINA_TRUE);
-		evas_object_smart_callback_add(eo, "delete,request", win_del, NULL);
+		evas_object_smart_callback_add(eo, "delete,request",_win_del, NULL);
 		elm_win_autodel_set(eo, EINA_TRUE);
+		elm_win_screen_size_get(eo, NULL, NULL, &w, &h);
+		g_print("window size :%d,%d\n", w, h);
+		elm_win_alpha_set(eo, EINA_TRUE);
 	}
-
-	printf("[%s][%d] name=%s end\n", __func__, __LINE__, name);
 	return eo;
 }
 
-static Evas_Object *create_image_object(Evas_Object *eo_parent)
+static Evas_Object *create_evas_image_object(Evas_Object *eo_parent)
 {
-	if (!eo_parent)
+	if(!eo_parent) {
 		return NULL;
-
+	}
 	Evas *evas = evas_object_evas_get(eo_parent);
 	Evas_Object *eo = NULL;
 
@@ -148,77 +165,43 @@ static Evas_Object *create_image_object(Evas_Object *eo_parent)
 	return eo;
 }
 
-static Evas_Object *create_render_rect(Evas_Object *pParent)
-{
-	if (!pParent)
-		return NULL;
-
-	Evas *pEvas = evas_object_evas_get(pParent);
-	Evas_Object *pObj = evas_object_rectangle_add(pEvas);
-	if (pObj == NULL) {
-		return NULL;
-	}
-
-	evas_object_size_hint_weight_set(pObj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_color_set(pObj, 0, 0, 0, 0);
-	evas_object_render_op_set(pObj, EVAS_RENDER_COPY);
-	evas_object_show(pObj);
-	elm_win_resize_object_add(pParent, pObj);
-
-	return pObj;
-}
-
 static int app_create(void *data)
 {
-	gboolean result = FALSE;
-	struct appdata *ad = data;
-	Evas_Object *win = NULL;
 
+	gboolean result = FALSE;
+
+	g_print("app_create enter");
+
+	Evas_Object *win = NULL;
 	/* create window */
-	win = create_win(PACKAGE);
+	win = _create_win(PACKAGE);
 	if (win == NULL)
 			return -1;
-	ad->win = win;
-	g_eo_win = win;
-	ad->bg = create_bg(ad->win);
-	ad->rect = create_render_rect(ad->win);
-	g_xid = ad->win;
-
-	/* Create evas image object for EVAS surface */
-	g_eo = create_image_object(ad->win);
-	evas_object_image_size_set(g_eo, 500, 500);
-	evas_object_image_fill_set(g_eo, 0, 0, 500, 500);
-	evas_object_resize(g_eo, 500, 500);
+	g_evas = win;
+	create_render_rect_and_bg(g_evas);
 
 	elm_win_activate(win);
 	evas_object_show(win);
 
 	result = _scmirroring_start_jobs((void *)NULL);
 	if (result != TRUE) {
-		g_print("failed _scmirroring_start_jobs\n");
+		g_print("failed _scmirroring_start_jobs ");
 	}
 
+	g_print("app_create leave");
+
 	return result;
+
 }
 static int app_terminate(void *data)
 {
-	struct appdata *ad = data;
 
-	if (g_eo) {
-		evas_object_del(g_eo);
-		g_eo = NULL;
+  if (g_evas) {
+    evas_object_del(g_evas);
+    g_evas = NULL;
 	}
-
-	if (g_eo_win) {
-		evas_object_del(g_eo_win);
-		g_eo_win = NULL;
-	}
-	ad->win = NULL;
-
 	return 0;
 }
-
-struct appdata ad;
 
 gboolean __timeout_sink_submenu_display(void *data)
 {
@@ -452,6 +435,61 @@ static void __interpret_stream_info_submenu(char *cmd)
 	return;
 }
 
+gboolean __timeout_window_size_submenu_display(void *data)
+{
+	__display_window_size_submenu();
+	return FALSE;
+
+}
+
+static void __display_window_size_submenu(void)
+{
+	g_print("\n");
+	g_print("**********************************************************************\n");
+	g_print("     Setting window size \n");
+	g_print("**********************************************************************\n");
+	g_print("1 : UHD [width:3840, height:2160] \n");
+	g_print("2 : FHD [width:1920, height:1080] \n");
+	g_print("3 : HD  [width:1280, height:720] \n");
+	g_print("g : Go back to main menu \n");
+	g_print("**********************************************************************\n");
+
+}
+
+static void __interpret_window_size_submenu(char *cmd)
+{
+	int w = 0;
+	int h = 0;
+	if (strncmp(cmd, "1", 1) == 0) {
+		w = 3840;
+		h = 2160;
+		elm_win_aux_hint_add(g_evas, "wm.policy.win.user.geometry", "1");
+		evas_object_resize(g_evas, w, h);
+		g_print("Window size is changed.[width:%d, height:%d]", w, h);
+	} else if (strncmp(cmd, "2", 1) == 0) {
+		w = 1920;
+		h = 1080;
+		elm_win_aux_hint_add(g_evas, "wm.policy.win.user.geometry", "1");
+		evas_object_resize(g_evas, w, h);
+		g_print("Window size is changed.[width:%d, height:%d]", w, h);
+	} else if (strncmp(cmd, "3", 1) == 0) {
+		w = 1280;
+		h = 720;
+		elm_win_aux_hint_add(g_evas, "wm.policy.win.user.geometry", "1");
+		evas_object_resize(g_evas, w, h);
+		g_print("Window size is changed.[width:%d, height:%d]", w, h);
+	} else if (strncmp(cmd, "g", 1) == 0) {
+		g_print("go back to main menu\n");
+		g_menu = MAIN_MENU;
+		g_timeout_add(100, __timeout_menu_display, 0);
+		return;
+	}
+
+	g_timeout_add(100, __timeout_window_size_submenu_display, 0);
+	return;
+}
+
+
 static void scmirroring_sink_state_callback(scmirroring_error_e error_code, scmirroring_sink_state_e state, void *user_data)
 {
 	g_print("Received Callback error code[%d]", error_code);
@@ -507,6 +545,8 @@ static void __displaymenu(void)
 #ifndef TEST_WITH_WIFI_DIRECT
 	g_print("a : a ip port(ex. a 192.168.49.1 2022)\n");
 	g_print("s : start \n");
+#else
+	g_print("b : Connecting and Starting sink with mac address which you wanna connect src device. (ex. b f8:d0:bd:7f:e9:7c)\n");
 #endif
 	g_print("P : Pause\n");
 	g_print("R : Resume\n");
@@ -514,7 +554,8 @@ static void __displaymenu(void)
 	g_print("T : desTroy\n");
 	g_print("L : Setting resolution\n");
 	g_print("G : Getting negotiated audio and video information\n");
-	g_print("S : setting Sink\n");
+	g_print("S : Setting Sink\n");
+	g_print("C : Setting window size\n");
 	g_print("q : quit\n");
 	g_print("-----------------------------------------------------------------------------------------\n");
 }
@@ -629,6 +670,38 @@ void _discover_cb(int error_code, wifi_direct_discovery_state_e discovery_state,
 void _ip_assigned_cb(const char *mac_address, const char *ip_address, const char *interface_address, void *user_data)
 {
 	g_print("[_ip_assigned_cb] IP assigned [ ip addr : %s if addr : %s mac_addr:%s ]\n", ip_address, interface_address, mac_address);
+
+	int peer_port = 0;
+	wifi_direct_discovered_peer_info_s *peer_info = NULL;
+
+	if (wifi_direct_get_peer_display_port((char *)mac_address, &peer_port) != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Can not get port info\n Use default(2022)\n");
+		peer_port = DEFAULT_SCREEN_MIRRORING_PORT;
+	}
+	if (peer_port == 0) {
+		g_print("Can not get port info\n Use default(2022)\n");
+		peer_port = DEFAULT_SCREEN_MIRRORING_PORT;
+	}
+	if (wifi_direct_get_peer_info((char *)mac_address, &peer_info) != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Can not get peer info and device name\n");
+	}
+ 
+	if (peer_info != NULL && peer_info->device_name != NULL) {
+		g_print("[_ip_assigned_cb] Connected to device_name [%s]\n", peer_info->device_name);
+	}
+
+	g_print("[_ip_assigned_cb] Connected to IP [%s]\n", ip_address);
+	g_print("[_ip_assigned_cb] Connected to Port [%d]\n", peer_port);
+	g_print("[_ip_assigned_cb] Connected to mac_address [%s]\n", mac_address);
+	g_print("[_ip_assigned_cb] Connected to interface_address [%s]\n", interface_address);
+
+	memset(g_peer_ip, 0x00, sizeof(g_peer_ip));
+	memset(g_peer_port, 0x00, sizeof(g_peer_port));
+
+	snprintf(g_peer_ip, sizeof(g_peer_port), "%s", ip_address);
+	snprintf(g_peer_port, sizeof(g_peer_port), "%d", peer_port);
+
+	g_timeout_add(SINKTEST_EXECUTE_DELAY, __scmirroring_sink_start, NULL);
 }
 
 void _connection_cb(int error_code, wifi_direct_connection_state_e connection_state, const char *mac_address, void *user_data)
@@ -637,13 +710,26 @@ void _connection_cb(int error_code, wifi_direct_connection_state_e connection_st
 
 	g_print("Connected [ error : %d connection state : %d mac_addr:%s ]\n", error_code, connection_state, mac_address);
 
-	if (connection_state == WIFI_DIRECT_CONNECTION_REQ) {
+  switch (connection_state) {
+    case WIFI_DIRECT_CONNECTION_REQ:
+    {
+      g_print("WIFI_DIRECT_CONNECTION_REQ : Connection is requested\n");
 		ret = wifi_direct_accept_connection((char *)mac_address);
 		if (ret != WIFI_DIRECT_ERROR_NONE) {
 			g_print("Error : wifi_direct_accept_connection failed : %d\n", ret);
 		}
-	} else if (connection_state == WIFI_DIRECT_CONNECTION_RSP) {
+      break;
+    }
+    case WIFI_DIRECT_CONNECTION_WPS_REQ:
+      g_print("WIFI_DIRECT_CONNECTION_WPS_REQ : WPS is requested\n");
+      break;
+    case WIFI_DIRECT_CONNECTION_IN_PROGRESS:
+      g_print("WIFI_DIRECT_CONNECTION_IN_PROGRESS : Connection in progress\n");
+      break;
+		case WIFI_DIRECT_CONNECTION_RSP:
+		{
 		bool is_go = FALSE;
+			g_print("WIFI_DIRECT_CONNECTION_RSP : Connected\n");
 		ret = wifi_direct_is_group_owner(&is_go);
 		if (ret != WIFI_DIRECT_ERROR_NONE) {
 			g_print("Error : wifi_direct_is_group_owner failed : %d\n", ret);
@@ -659,19 +745,53 @@ void _connection_cb(int error_code, wifi_direct_connection_state_e connection_st
 			}
 			g_print("Connected as Group Client\n");
 		}
+			break;
+		}
+	case WIFI_DIRECT_DISASSOCIATION_IND:
+		g_print("WIFI_DIRECT_DISASSOCIATION_IND : Disconnected by remote Group Client\n");
+		break;
+	case WIFI_DIRECT_DISCONNECTION_RSP:
+		g_print("WIFI_DIRECT_DISCONNECTION_RSP : Disconnected by local device\n");
+		break;
+	case WIFI_DIRECT_DISCONNECTION_IND:
+		g_print("WIFI_DIRECT_DISCONNECTION_IND : Disconnected by remote Group Owner\n");
+		break;
+	case WIFI_DIRECT_GROUP_CREATED:
+		g_print("WIFI_DIRECT_GROUP_CREATED : Group is created\n");
+		break;
+	case WIFI_DIRECT_GROUP_DESTROYED:
+		g_print("WIFI_DIRECT_GROUP_DESTROYED : Group is destroyed\n");
+		break;
+	default:
+		break;
 	}
-
 	return;
 }
+
+
+static int __wifi_direct_device_connect()
+{
+	if (strlen(g_src_mac_addr) > 17 || strlen(g_src_mac_addr) <= 0) {
+		g_print("\nWrong Mac_address");
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+
+	int err =  wifi_direct_connect(g_src_mac_addr);
+	if (err != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Failed to connect  [%d]\n", err);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+	return SCMIRRORING_ERROR_NONE;
+}
+
 #endif
 
 static void __interpret(char *cmd)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
-#ifndef TEST_WITH_WIFI_DIRECT
 	gchar **value;
 	value = g_strsplit(cmd, " ", 0);
-#endif
+
 	if (strncmp(cmd, "D", 1) == 0) {
 		g_print("Disconnect\n");
 		ret = scmirroring_sink_disconnect(g_scmirroring);
@@ -699,6 +819,10 @@ static void __interpret(char *cmd)
 		g_menu = SUBMENU_GETTING_STREAM_INFO;
 		g_timeout_add(100, __timeout_stream_info_submenu_display, 0);
 		return;
+	} else if (strncmp(cmd, "C", 1) == 0) {
+		g_menu = SUBMENU_SETTING_WINDOW_SIZE;
+		g_timeout_add(100, __timeout_window_size_submenu_display, 0);
+		return;
 	}
 #ifndef TEST_WITH_WIFI_DIRECT
 	else if (strncmp(cmd, "a", 1) == 0) {
@@ -710,6 +834,13 @@ static void __interpret(char *cmd)
 	} else if (strncmp(cmd, "s", 1) == 0) {
 		g_print("Start\n");
 		ret = __scmirroring_sink_start(NULL);
+	}
+#else
+	else if (strncmp(cmd, "b", 1) == 0) {
+		strncpy(g_src_mac_addr, value[1], sizeof(g_src_mac_addr));
+		g_src_mac_addr[17] = '\0';
+		g_print("Src mac address : %s\n", g_src_mac_addr);
+		ret = __wifi_direct_device_connect();
 	}
 #endif
 	else {
@@ -743,6 +874,8 @@ gboolean __input(GIOChannel *channel)
 		__interpret_stream_info_submenu(buf);
 	else if (g_menu == SUBMENU_SETTING_SINK)
 		__interpret_sink_submenu(buf);
+	else if (g_menu == SUBMENU_SETTING_WINDOW_SIZE)
+		__interpret_window_size_submenu(buf);
 
 	return TRUE;
 }
@@ -809,7 +942,7 @@ static gboolean __start_wifi_display_connection()
 	if (direct_state > WIFI_DIRECT_STATE_ACTIVATING) {
 		char *device_name = NULL;
 
-		ret = wifi_direct_start_discovery(1, 0);
+		ret = wifi_direct_start_discovery(0, 20);
 		if (ret != WIFI_DIRECT_ERROR_NONE) {
 			g_print("Error : wifi_direct_start_discovery failed : %d\n", ret);
 			return FALSE;
@@ -940,6 +1073,7 @@ static gboolean __disconnect_p2p_connection(void)
 }
 #endif
 
+#ifndef TEST_WITH_WIFI_DIRECT
 static int __scmirroring_sink_create(gpointer data)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
@@ -950,24 +1084,6 @@ static int __scmirroring_sink_create(gpointer data)
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
-	if (g_resolution != 0) {
-		ret = scmirroring_sink_set_resolution(g_scmirroring, g_resolution);
-		if (ret != SCMIRRORING_ERROR_NONE) {
-			g_print("Failed to set resolution, error[%d]\n", ret);
-		}
-	}
-
-	if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
-		evas_object_show(g_eo_win);
-		ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_OVERLAY, (void *)g_eo_win);
-	} else if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_EVAS) {
-		evas_object_image_size_set(g_eo, 800, 1200);
-		evas_object_image_fill_set(g_eo, 0, 0, 800, 1200);
-		evas_object_resize(g_eo, 800, 1200);
-		evas_object_show(g_eo_win);
-		ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_EVAS, (void *)g_eo);
-	}
-
 	ret = scmirroring_sink_prepare(g_scmirroring);
 	if (ret != SCMIRRORING_ERROR_NONE) {
 		g_print("scmirroring_sink_prepare fail [%d]", ret);
@@ -975,15 +1091,51 @@ static int __scmirroring_sink_create(gpointer data)
 	}
 	return ret;
 }
+#endif
 
 gboolean __scmirroring_sink_start(gpointer data)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
+	g_print("__scmirroring_sink_start <enter>\n");
 
 #ifdef TEST_WITH_WIFI_DIRECT
-	ret = __scmirroring_sink_create(NULL);
+	ret = scmirroring_sink_create(&g_scmirroring);
 	if (ret != SCMIRRORING_ERROR_NONE) {
-		g_print("__scmirroring_sink_create fail [%d]", ret);
+		g_print("scmirroring_sink_create fail [%d]", ret);
+		return FALSE;
+	}
+
+	if (g_resolution != 0) {
+		ret = scmirroring_sink_set_resolution(g_scmirroring, g_resolution);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("Failed to set resolution, error[%d]\n", ret);
+		}
+	}
+
+	if(g_sinktype != -1) {
+
+	if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
+			evas_object_show(g_evas);
+			ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_OVERLAY, (void *)g_evas);
+	} else if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_EVAS) {
+			g_eo = create_evas_image_object(g_evas);
+
+		evas_object_image_size_set(g_eo, 800, 1200);
+		evas_object_image_fill_set(g_eo, 0, 0, 800, 1200);
+		evas_object_resize(g_eo, 800, 1200);
+			evas_object_show(g_evas);
+		ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_EVAS, (void *)g_eo);
+	}
+
+	if (ret != SCMIRRORING_ERROR_NONE) {
+			g_print("scmirroring_sink_set_display fail [%d]", ret);
+			return FALSE;
+	}
+}
+
+	ret = scmirroring_sink_prepare(g_scmirroring);
+	if (ret != SCMIRRORING_ERROR_NONE) {
+		g_print("scmirroring_sink_prepare fail [%d]", ret);
 		return FALSE;
 	}
 
@@ -1008,6 +1160,7 @@ gboolean __scmirroring_sink_start(gpointer data)
 		return FALSE;
 	}
 
+	g_print("__scmirroring_sink_start <leave>\n");
 	return FALSE;
 }
 
@@ -1034,7 +1187,10 @@ int main(int argc, char *argv[])
 
 	__displaymenu();
 
-	memset(&ad, 0x0, sizeof(struct appdata));
-	ops.data = &ad;
-	return appcore_efl_main(PACKAGE, &argc, &argv, &ops);
+	ops.data = NULL;
+	appcore_efl_main(PACKAGE, &argc, &argv, &ops);
+
+	g_print("Exit Program");
+
+	return 0;
 }
