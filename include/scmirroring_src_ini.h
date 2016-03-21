@@ -26,7 +26,7 @@ extern "C" {
 #define ERROR_NONE 0
 #define ERROR_FILE_NOT_FOUND 1
 
-#define SCMIRRORING_SRC_INI_DEFAULT_PATH	"/usr/etc/scmirroring_src.ini"
+#define SCMIRRORING_SRC_INI_DEFAULT_PATH	SYSCONFDIR"/multimedia/scmirroring_src.ini"/*sysconfdir is defined at .spec file*/
 #define SCMIRRORING_SRC_INI_GST_START_PARAMS_NUM	5
 
 #define SCMIRRORING_SRC_INI() scmirroring_src_ini_get_structure()
