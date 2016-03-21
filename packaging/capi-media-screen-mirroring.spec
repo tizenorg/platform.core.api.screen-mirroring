@@ -42,6 +42,7 @@ Requires: %{name} = %{version}-%{release}
 export CFLAGS+=" -Wextra -Wno-array-bounds"
 export CFLAGS+=" -Wno-ignored-qualifiers -Wno-unused-parameter -Wshadow"
 export CFLAGS+=" -Wwrite-strings"
+export CFLAGS+=" -DSYSCONFDIR=\\\"%{_sysconfdir}\\\""
 #export CFLAGS+="-Wswitch-default"
 
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
@@ -69,8 +70,8 @@ cp -rf %{_builddir}/%{name}-%{version}/packaging/org.tizen.scmirroring.server.co
 mkdir -p %{buildroot}/%{_datadir}/license
 cp -rf %{_builddir}/%{name}-%{version}/LICENSE.APLv2.0 %{buildroot}/%{_datadir}/license/%{name}
 
-mkdir -p %{buildroot}/usr/etc
-cp -rf config/scmirroring_src.ini %{buildroot}/usr/etc/scmirroring_src.ini
+mkdir -p %{buildroot}%{_sysconfdir}/multimedia
+cp -rf config/scmirroring_src.ini %{buildroot}%{_sysconfdir}/multimedia/scmirroring_src.ini
 
 %post -p /sbin/ldconfig
 
@@ -85,7 +86,7 @@ cp -rf config/scmirroring_src.ini %{buildroot}/usr/etc/scmirroring_src.ini
 #License
 %{_datadir}/license/%{name}
 %{_bindir}/miracast_server
-/usr/etc/scmirroring_src.ini
+%{_sysconfdir}/multimedia/scmirroring_src.ini
 /etc/dbus-1/system.d/org.tizen.scmirroring.server.conf
 
 %files devel
