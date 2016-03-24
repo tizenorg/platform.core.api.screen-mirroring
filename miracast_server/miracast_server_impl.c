@@ -497,11 +497,17 @@ ERROR:
 
 
 static void
-__client_closed(GstRTSPClient *client)
+__client_closed(GstRTSPClient *client, gpointer *user_data)
 {
-	if (client == NULL) return;
+	MiracastServer *server_obj = (MiracastServer *)user_data;
+	MiracastServerClass *klass;
 
+	if (client == NULL || server_obj == NULL) return;
+
+	klass = MIRACAST_SERVER_GET_CLASS(server_obj);
+ 
 	scmirroring_debug("client %p: connection closed", client);
+	klass->send_response(server_obj, "OK:STOP");
 
 	return;
 }
@@ -568,7 +574,7 @@ static void __miracast_server_client_connected_cb(GstRTSPServer *server, GstRTSP
 	server_obj->client = (void *)client;
 
 	g_signal_connect(G_OBJECT(client), "teardown-request", G_CALLBACK(__teardown_req), NULL);
-	g_signal_connect(G_OBJECT(client), "closed", G_CALLBACK(__client_closed), NULL);
+	g_signal_connect_after(G_OBJECT(client), "closed", G_CALLBACK(__client_closed), server_obj);
 	g_signal_connect(G_OBJECT(client), "new-session", G_CALLBACK(__new_session), NULL);
 	g_signal_connect(G_OBJECT(client), "check-requirements", G_CALLBACK(__check_requirements_cb), NULL);
 	g_signal_connect(G_OBJECT(client), "wfd-playing-done", G_CALLBACK(__playing_done), server_obj);
@@ -813,7 +819,7 @@ void __miracast_server_interpret(MiracastServer *server, gchar *buf)
 		klass->send_response(server, "OK:RESUME");
 	} else if (g_strrstr(buf, SCMIRRORING_STATE_CMD_STOP)) {
 		gst_rtsp_wfd_server_trigger_request(GST_RTSP_SERVER(server->server), WFD_TRIGGER_TEARDOWN);
-		klass->send_response(server, "OK:STOP");
+		//klass->send_response(server, "OK:STOP");
 	} else if (g_strrstr(buf, SCMIRRORING_STATE_CMD_DESTROY)) {
 		klass->quit_server(server);
 	}
