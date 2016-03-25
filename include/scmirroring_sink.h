@@ -38,7 +38,6 @@ extern "C" {
  * @since_tizen 2.4
  *
  * @remarks You must release @a scmirroring_sink using scmirroring_sink_destroy().
- *          http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
  *
  * @param[out] scmirroring_sink	A newly returned handle to the screen mirroring sink
  * @return @c 0 on success,
@@ -47,7 +46,6 @@ extern "C" {
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -163,8 +161,6 @@ int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, int res
  * @brief Prepares the screen mirroring sink handle and allocates specific resources.
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
  *         otherwise a negative error value
@@ -172,7 +168,6 @@ int scmirroring_sink_set_resolution(scmirroring_sink_h scmirroring_sink, int res
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -341,8 +336,6 @@ int scmirroring_sink_disconnect(scmirroring_sink_h scmirroring_sink);
  *
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @return @c 0 on success,
  *         otherwise a negative error value
@@ -350,7 +343,6 @@ int scmirroring_sink_disconnect(scmirroring_sink_h scmirroring_sink);
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_OUT_OF_MEMORY Out of memory
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -416,8 +408,6 @@ int scmirroring_sink_destroy(scmirroring_sink_h scmirroring_sink);
  *
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] codec Codec of video
  * @return @c 0 on success,
@@ -425,7 +415,6 @@ int scmirroring_sink_destroy(scmirroring_sink_h scmirroring_sink);
  * @retval #SCMIRRORING_ERROR_NONE Successful
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -443,8 +432,6 @@ int scmirroring_sink_get_negotiated_video_codec(scmirroring_sink_h *scmirroring_
  *
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] width Width of video
  * @param[out] height Height of video
@@ -453,7 +440,6 @@ int scmirroring_sink_get_negotiated_video_codec(scmirroring_sink_h *scmirroring_
  * @retval #SCMIRRORING_ERROR_NONE Successful
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -471,8 +457,6 @@ int scmirroring_sink_get_negotiated_video_resolution(scmirroring_sink_h *scmirro
  *
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] frame_rate Frame rate of video
  * @return @c 0 on success,
@@ -480,7 +464,6 @@ int scmirroring_sink_get_negotiated_video_resolution(scmirroring_sink_h *scmirro
  * @retval #SCMIRRORING_ERROR_NONE Successful
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -498,8 +481,6 @@ int scmirroring_sink_get_negotiated_video_frame_rate(scmirroring_sink_h *scmirro
  *
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] codec Codec of audio
  * @return @c 0 on success,
@@ -507,7 +488,6 @@ int scmirroring_sink_get_negotiated_video_frame_rate(scmirroring_sink_h *scmirro
  * @retval #SCMIRRORING_ERROR_NONE Successful
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -525,8 +505,6 @@ int scmirroring_sink_get_negotiated_audio_codec(scmirroring_sink_h *scmirroring_
  *
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] channel Channel of audio
  * @return @c 0 on success,
@@ -534,7 +512,6 @@ int scmirroring_sink_get_negotiated_audio_codec(scmirroring_sink_h *scmirroring_
  * @retval #SCMIRRORING_ERROR_NONE Successful
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -552,8 +529,6 @@ int scmirroring_sink_get_negotiated_audio_channel(scmirroring_sink_h *scmirrorin
  *
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] sample_rate Sample rate of audio
  * @return @c 0 on success,
@@ -561,7 +536,6 @@ int scmirroring_sink_get_negotiated_audio_channel(scmirroring_sink_h *scmirrorin
  * @retval #SCMIRRORING_ERROR_NONE Successful
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
@@ -579,8 +553,6 @@ int scmirroring_sink_get_negotiated_audio_sample_rate(scmirroring_sink_h *scmirr
  *
  * @since_tizen 2.4
  *
- * @remarks http://tizen.org/privilege/internet(public level privilege) is no longer required to use this API since 3.0.
- *
  * @param[in] scmirroring_sink The handle to the screen mirroring sink
  * @param[out] bitwidth Bitwidth of audio
  * @return @c 0 on success,
@@ -588,7 +560,6 @@ int scmirroring_sink_get_negotiated_audio_sample_rate(scmirroring_sink_h *scmirr
  * @retval #SCMIRRORING_ERROR_NONE Successful
  * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #SCMIRRORING_ERROR_INVALID_OPERATION Invalid operation
- * @retval #SCMIRRORING_ERROR_PERMISSION_DENIED Permission denied
  * @retval #SCMIRRORING_ERROR_NOT_SUPPORTED Not supported
  * @retval #SCMIRRORING_ERROR_UNKNOWN Unknown Error
  *
