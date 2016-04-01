@@ -30,12 +30,12 @@ typedef struct _MiracastServerClass MiracastServerClass;
 #define MIRACAST_SERVER_TYPE_OBJECT       (miracast_server_get_type())
 #define MIRACAST_SERVER(object)           (G_TYPE_CHECK_INSTANCE_CAST \
                                           ((object), MIRACAST_SERVER_TYPE_OBJECT, MiracastServer))
-#define MIRACAST_SERVER_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), MIRACAST_SERVER_TYPE_OBJECT, MiracastServerClass))
-#define MIRACAST_SERVER_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), MIRACAST_SERVER_TYPE_OBJECT, MiracastServerClass))
+#define MIRACAST_SERVER_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST((klass), MIRACAST_SERVER_TYPE_OBJECT, MiracastServerClass))
+#define MIRACAST_SERVER_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS((obj), MIRACAST_SERVER_TYPE_OBJECT, MiracastServerClass))
 #define MIRACAST_SERVER_CAST(obj)         ((MiracastServer*)(obj))
 #define MIRACAST_SERVER_CLASS_CAST(klass) ((MiracastServerClass*)(klass))
-#define IS_MIRACAST_SERVER_OBJECT(obj)    (G_TYPE_CHECK_INSTANCE_TYPE ((obj), MIRACAST_SERVER_TYPE_OBJECT))
-#define IS_MIRACAST_SERVER_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), MIRACAST_SERVER_TYPE_OBJECT))
+#define IS_MIRACAST_SERVER_OBJECT(obj)    (G_TYPE_CHECK_INSTANCE_TYPE((obj), MIRACAST_SERVER_TYPE_OBJECT))
+#define IS_MIRACAST_SERVER_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE((klass), MIRACAST_SERVER_TYPE_OBJECT))
 
 struct _MiracastServer {
 	GObject parent;
