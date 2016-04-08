@@ -20,4 +20,4 @@ INSTALL(TARGETS miracast_server_lib DESTINATION ${LIB_INSTALL_DIR})
 
 ADD_EXECUTABLE(miracast_server miracast_server.c)
 TARGET_LINK_LIBRARIES(miracast_server ${fw_name} ${${fw_test}_LDFLAGS} miracast_server_lib)
-INSTALL(TARGETS miracast_server DESTINATION /usr/bin)
+INSTALL(TARGETS miracast_server DESTINATION ${TZ_SYS_BIN})

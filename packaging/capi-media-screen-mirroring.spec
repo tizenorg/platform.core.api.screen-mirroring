@@ -1,6 +1,6 @@
 Name:       capi-media-screen-mirroring
 Summary:    A screen mirroring library in Tizen C API
-Version:    0.1.45
+Version:    0.1.46
 Release:    0
 Group:      Multimedia/API
 License:    Apache-2.0
@@ -19,6 +19,7 @@ BuildRequires:  pkgconfig(iniparser)
 BuildRequires:  pkgconfig(appcore-efl)
 BuildRequires:  pkgconfig(elementary)
 BuildRequires:  pkgconfig(evas)
+BuildRequires:  pkgconfig(libtzplatform-config)
 
 
 Requires(post): /sbin/ldconfig
@@ -52,15 +53,20 @@ export CFLAGS="$CFLAGS -DTIZEN_DEBUG_ENABLE"
 export CXXFLAGS="$CXXFLAGS -DTIZEN_DEBUG_ENABLE"
 export FFLAGS="$FFLAGS -DTIZEN_DEBUG_ENABLE"
 %endif
-%cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
+%cmake . \
+         -DFULLVER=%{version} \
+         -DMAJORVER=${MAJORVER} \
+         -DTZ_SYS_BIN=%TZ_SYS_BIN \
+         -DTZ_SYS_RO_SHARE=%TZ_SYS_RO_SHARE \
+         -DTZ_SYS_RO_ETC=%TZ_SYS_RO_ETC
 
 make %{?jobs:-j%jobs}
 
 %install
 rm -rf %{buildroot}
 %make_install
-mkdir -p %{buildroot}/usr/share/dbus-1/system-services/
-install -m 755 org.tizen.scmirroring.server.service %{buildroot}/usr/share/dbus-1/system-services/
+mkdir -p %{buildroot}%{TZ_SYS_RO_SHARE}/dbus-1/system-services/
+install -m 755 org.tizen.scmirroring.server.service %{buildroot}%{TZ_SYS_RO_SHARE}/dbus-1/system-services/
 mkdir -p %{buildroot}/%{_datadir}/license
 cp -rf %{_builddir}/%{name}-%{version}/LICENSE.APLv2.0 %{buildroot}%{_datadir}/license/%{name}
 mkdir -p %{buildroot}/etc/dbus-1/system.d/
