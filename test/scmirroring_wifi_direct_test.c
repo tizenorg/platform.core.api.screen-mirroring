@@ -217,28 +217,28 @@ void _activation_cb(int error_code, wifi_direct_device_state_e device_state, voi
 	int ret = 0;
 
 	switch (device_state) {
-		case WIFI_DIRECT_DEVICE_STATE_ACTIVATED:
-			g_print("device_state : WIFI_DIRECT_DEVICE_STATE_ACTIVATED\n");
-			ret = __start_wifi_display_connection();
-			if (ret == TRUE) {
-				g_print("__start_wifi_display_connection success\n");
-			} else {
-				g_print("__start_wifi_display_connection fail\n");
-				g_print("Quit Program\n");
-				ret = wifi_direct_deinitialize();
-				if (ret != WIFI_DIRECT_ERROR_NONE)
-					g_print("wifi_direct_deinitialize is failed\n");
+	case WIFI_DIRECT_DEVICE_STATE_ACTIVATED:
+		g_print("device_state : WIFI_DIRECT_DEVICE_STATE_ACTIVATED\n");
+		ret = __start_wifi_display_connection();
+		if (ret == TRUE) {
+			g_print("__start_wifi_display_connection success\n");
+		} else {
+			g_print("__start_wifi_display_connection fail\n");
+			g_print("Quit Program\n");
+			ret = wifi_direct_deinitialize();
+			if (ret != WIFI_DIRECT_ERROR_NONE)
+				g_print("wifi_direct_deinitialize is failed\n");
 
-				g_scmirroring = 0;
-				g_main_loop_quit(g_loop);
-			}
-			break;
-		case WIFI_DIRECT_DEVICE_STATE_DEACTIVATED:
-			g_print("device_state : WIFI_DIRECT_DEVICE_STATE_DEACTIVATED\n");
-			break;
-		default:
-			g_print("device_state : ERROR\n");
-			break;
+			g_scmirroring = 0;
+			g_main_loop_quit(g_loop);
+		}
+		break;
+	case WIFI_DIRECT_DEVICE_STATE_DEACTIVATED:
+		g_print("device_state : WIFI_DIRECT_DEVICE_STATE_DEACTIVATED\n");
+		break;
+	default:
+		g_print("device_state : ERROR\n");
+		break;
 	}
 
 	return;
@@ -259,25 +259,25 @@ void _discover_cb(int error_code, wifi_direct_discovery_state_e discovery_state,
 	/*g_print("Discovered [ error : %d discovery state : %d ]\n", error_code, discovery_state); */
 
 	switch (discovery_state) {
-		case WIFI_DIRECT_ONLY_LISTEN_STARTED:
-			g_print("discovery_state : WIFI_DIRECT_ONLY_LISTEN_STARTED \n");
-			break;
-		case WIFI_DIRECT_DISCOVERY_STARTED:
-			g_print("discovery_state : WIFI_DIRECT_DISCOVERY_STARTED \n");
-			break;
-		case WIFI_DIRECT_DISCOVERY_FOUND:
-			g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FOUND \n");
-			ret = wifi_direct_foreach_discovered_peers(_discovered_peer_cb, (void *)NULL);
-			if (ret != WIFI_DIRECT_ERROR_NONE) {
-				g_print("Error : wifi_direct_foreach_discovered_peers failed : %d\n", ret);
-			}
-			break;
-		case WIFI_DIRECT_DISCOVERY_FINISHED:
-			g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FINISHED \n");
-			break;
-		default:
-			g_print("discovery_state : ERROR\n");
-			break;
+	case WIFI_DIRECT_ONLY_LISTEN_STARTED:
+		g_print("discovery_state : WIFI_DIRECT_ONLY_LISTEN_STARTED \n");
+		break;
+	case WIFI_DIRECT_DISCOVERY_STARTED:
+		g_print("discovery_state : WIFI_DIRECT_DISCOVERY_STARTED \n");
+		break;
+	case WIFI_DIRECT_DISCOVERY_FOUND:
+		g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FOUND \n");
+		ret = wifi_direct_foreach_discovered_peers(_discovered_peer_cb, (void *)NULL);
+		if (ret != WIFI_DIRECT_ERROR_NONE) {
+			g_print("Error : wifi_direct_foreach_discovered_peers failed : %d\n", ret);
+		}
+		break;
+	case WIFI_DIRECT_DISCOVERY_FINISHED:
+		g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FINISHED \n");
+		break;
+	default:
+		g_print("discovery_state : ERROR\n");
+		break;
 	}
 
 	return;
@@ -306,32 +306,32 @@ void _connection_cb(int error_code, wifi_direct_connection_state_e connection_st
 	g_print("Connected [ error : %d connection state : %d mac_addr:%s ]\n", error_code, connection_state, mac_address);
 
 	switch (connection_state) {
-		case WIFI_DIRECT_CONNECTION_IN_PROGRESS: {
-				g_print(" WIFI_DIRECT_CONNECTION_IN_PROGRESS\n");
-				break;
-			}
-		case WIFI_DIRECT_CONNECTION_RSP: {
-				g_print(" WIFI_DIRECT_CONNECTION_RSP\n");
-				bool is_go = FALSE;
-				wifi_direct_is_group_owner(&is_go);
-				if (!is_go) {
-					wifi_direct_foreach_connected_peers(_connected_peer_cb, (void *)NULL);
-					g_print("WIFI_DIRECT_CONNECTION_RSP : Source is not group owner\n");
-				} else {
-					g_print("WIFI_DIRECT_CONNECTION_RSP : Source is group owner\n ");
-				}
-				break;
-			}
-		case WIFI_DIRECT_CONNECTION_REQ:
-		case WIFI_DIRECT_CONNECTION_WPS_REQ:
-		case WIFI_DIRECT_DISCONNECTION_RSP:
-		case WIFI_DIRECT_DISCONNECTION_IND:
-		case WIFI_DIRECT_GROUP_CREATED:
-		case WIFI_DIRECT_GROUP_DESTROYED:
-		case WIFI_DIRECT_DISASSOCIATION_IND:
+	case WIFI_DIRECT_CONNECTION_IN_PROGRESS: {
+			g_print(" WIFI_DIRECT_CONNECTION_IN_PROGRESS\n");
 			break;
-		default:
+		}
+	case WIFI_DIRECT_CONNECTION_RSP: {
+			g_print(" WIFI_DIRECT_CONNECTION_RSP\n");
+			bool is_go = FALSE;
+			wifi_direct_is_group_owner(&is_go);
+			if (!is_go) {
+				wifi_direct_foreach_connected_peers(_connected_peer_cb, (void *)NULL);
+				g_print("WIFI_DIRECT_CONNECTION_RSP : Source is not group owner\n");
+			} else {
+				g_print("WIFI_DIRECT_CONNECTION_RSP : Source is group owner\n ");
+			}
 			break;
+		}
+	case WIFI_DIRECT_CONNECTION_REQ:
+	case WIFI_DIRECT_CONNECTION_WPS_REQ:
+	case WIFI_DIRECT_DISCONNECTION_RSP:
+	case WIFI_DIRECT_DISCONNECTION_IND:
+	case WIFI_DIRECT_GROUP_CREATED:
+	case WIFI_DIRECT_GROUP_DESTROYED:
+	case WIFI_DIRECT_DISASSOCIATION_IND:
+		break;
+	default:
+		break;
 	}
 
 	return;

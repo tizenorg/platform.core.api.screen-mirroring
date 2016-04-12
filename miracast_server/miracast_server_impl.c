@@ -256,16 +256,16 @@ static void __miracast_server_signal_handler(int signo)
 	int ret = 0;
 
 	switch (signo) {
-		case SIGINT:
-		case SIGQUIT:
-		case SIGTERM:
-			ret = __miracast_server_emit_status_signal(MIRACAST_WFD_SOURCE_OFF);
-			if (ret != SCMIRRORING_ERROR_NONE) {
-				scmirroring_error("Failed to emit miracast server off signal");
-			}
-			break;
-		default:
-			break;
+	case SIGINT:
+	case SIGQUIT:
+	case SIGTERM:
+		ret = __miracast_server_emit_status_signal(MIRACAST_WFD_SOURCE_OFF);
+		if (ret != SCMIRRORING_ERROR_NONE) {
+			scmirroring_error("Failed to emit miracast server off signal");
+		}
+		break;
+	default:
+		break;
 	}
 	exit(1);
 }

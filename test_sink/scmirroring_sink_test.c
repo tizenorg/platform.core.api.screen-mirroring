@@ -137,13 +137,13 @@ static Evas_Object* _create_win(const char *name)
 	int w = 0;
 	int h = 0;
 
-	g_printf ("[%s][%d] name=%s\n", __func__, __LINE__, name);
+	g_printf("[%s][%d] name=%s\n", __func__, __LINE__, name);
 
 	eo = elm_win_add(NULL, name, ELM_WIN_BASIC);
 	if (eo) {
 		elm_win_title_set(eo, name);
 		elm_win_borderless_set(eo, EINA_TRUE);
-		evas_object_smart_callback_add(eo, "delete,request",_win_del, NULL);
+		evas_object_smart_callback_add(eo, "delete,request", _win_del, NULL);
 		elm_win_autodel_set(eo, EINA_TRUE);
 		elm_win_screen_size_get(eo, NULL, NULL, &w, &h);
 		g_print("window size :%d,%d\n", w, h);
@@ -154,7 +154,7 @@ static Evas_Object* _create_win(const char *name)
 
 static Evas_Object *create_evas_image_object(Evas_Object *eo_parent)
 {
-	if(!eo_parent) {
+	if (!eo_parent) {
 		return NULL;
 	}
 	Evas *evas = evas_object_evas_get(eo_parent);
@@ -196,9 +196,9 @@ static int app_create(void *data)
 static int app_terminate(void *data)
 {
 
-  if (g_evas) {
-    evas_object_del(g_evas);
-    g_evas = NULL;
+	if (g_evas) {
+		evas_object_del(g_evas);
+		g_evas = NULL;
 	}
 	return 0;
 }
@@ -345,12 +345,12 @@ static void __interpret_stream_info_submenu(char *cmd)
 			g_print("Error : scmirroring_sink_get_negotiated_video_codec fail[%d]\n", ret);
 		} else {
 			switch (codec) {
-				case SCMIRRORING_VIDEO_CODEC_H264:
-					g_print("video codec : H264[%d]\n", codec);
-					break;
-				default:
-					g_print("video codec : NONE[%d]\n", codec);
-					break;
+			case SCMIRRORING_VIDEO_CODEC_H264:
+				g_print("video codec : H264[%d]\n", codec);
+				break;
+			default:
+				g_print("video codec : NONE[%d]\n", codec);
+				break;
 			}
 		}
 
@@ -381,18 +381,18 @@ static void __interpret_stream_info_submenu(char *cmd)
 			g_print("Error : scmirroring_sink_get_negotiated_audio_codec fail[%d]\n", ret);
 		} else {
 			switch (codec) {
-				case SCMIRRORING_AUDIO_CODEC_AAC:
-					g_print("audio codec : AAC[%d]\n", codec);
-					break;
-				case SCMIRRORING_AUDIO_CODEC_AC3:
-					g_print("audio codec : AC3[%d]\n", codec);
-					break;
-				case SCMIRRORING_AUDIO_CODEC_LPCM:
-					g_print("audio codec : LPCM[%d]\n", codec);
-					break;
-				default:
-					g_print("audio codec : NONE[%d]\n", codec);
-					break;
+			case SCMIRRORING_AUDIO_CODEC_AAC:
+				g_print("audio codec : AAC[%d]\n", codec);
+				break;
+			case SCMIRRORING_AUDIO_CODEC_AC3:
+				g_print("audio codec : AC3[%d]\n", codec);
+				break;
+			case SCMIRRORING_AUDIO_CODEC_LPCM:
+				g_print("audio codec : LPCM[%d]\n", codec);
+				break;
+			default:
+				g_print("audio codec : NONE[%d]\n", codec);
+				break;
 			}
 		}
 
@@ -601,28 +601,28 @@ void _activation_cb(int error_code, wifi_direct_device_state_e device_state, voi
 {
 	gint ret = FALSE;
 	switch (device_state) {
-		case WIFI_DIRECT_DEVICE_STATE_ACTIVATED:
-			g_print("device_state : WIFI_DIRECT_DEVICE_STATE_ACTIVATED\n");
-			ret = __start_wifi_display_connection();
-			if (ret == TRUE) {
-				g_print("__start_wifi_display_connection success\n");
-			} else {
-				g_print("__start_wifi_display_connection fail\n");
-				g_print("Quit Program\n");
-				ret = wifi_direct_deinitialize();
-				if (ret != WIFI_DIRECT_ERROR_NONE)
-					g_print("wifi_direct_deinitialize is failed\n");
+	case WIFI_DIRECT_DEVICE_STATE_ACTIVATED:
+		g_print("device_state : WIFI_DIRECT_DEVICE_STATE_ACTIVATED\n");
+		ret = __start_wifi_display_connection();
+		if (ret == TRUE) {
+			g_print("__start_wifi_display_connection success\n");
+		} else {
+			g_print("__start_wifi_display_connection fail\n");
+			g_print("Quit Program\n");
+			ret = wifi_direct_deinitialize();
+			if (ret != WIFI_DIRECT_ERROR_NONE)
+				g_print("wifi_direct_deinitialize is failed\n");
 
-				g_scmirroring = 0;
-				elm_exit();
-			}
-			break;
-		case WIFI_DIRECT_DEVICE_STATE_DEACTIVATED:
-			g_print("device_state : WIFI_DIRECT_DEVICE_STATE_DEACTIVATED\n");
-			break;
-		default:
-			g_print("device_state : ERROR\n");
-			break;
+			g_scmirroring = 0;
+			elm_exit();
+		}
+		break;
+	case WIFI_DIRECT_DEVICE_STATE_DEACTIVATED:
+		g_print("device_state : WIFI_DIRECT_DEVICE_STATE_DEACTIVATED\n");
+		break;
+	default:
+		g_print("device_state : ERROR\n");
+		break;
 	}
 
 	return;
@@ -643,25 +643,25 @@ void _discover_cb(int error_code, wifi_direct_discovery_state_e discovery_state,
 	/*g_print("Discovered [ error : %d discovery state : %d ]\n", error_code, discovery_state); */
 
 	switch (discovery_state) {
-		case WIFI_DIRECT_ONLY_LISTEN_STARTED:
-			g_print("discovery_state : WIFI_DIRECT_ONLY_LISTEN_STARTED \n");
-			break;
-		case WIFI_DIRECT_DISCOVERY_STARTED:
-			g_print("discovery_state : WIFI_DIRECT_DISCOVERY_STARTED \n");
-			break;
-		case WIFI_DIRECT_DISCOVERY_FOUND:
-			g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FOUND \n");
-			ret = wifi_direct_foreach_discovered_peers(_discovered_peer_cb, (void *)NULL);
-			if (ret != WIFI_DIRECT_ERROR_NONE) {
-				g_print("Error : wifi_direct_foreach_discovered_peers failed : %d\n", ret);
-			}
-			break;
-		case WIFI_DIRECT_DISCOVERY_FINISHED:
-			g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FINISHED \n");
-			break;
-		default:
-			g_print("discovery_state : ERROR\n");
-			break;
+	case WIFI_DIRECT_ONLY_LISTEN_STARTED:
+		g_print("discovery_state : WIFI_DIRECT_ONLY_LISTEN_STARTED \n");
+		break;
+	case WIFI_DIRECT_DISCOVERY_STARTED:
+		g_print("discovery_state : WIFI_DIRECT_DISCOVERY_STARTED \n");
+		break;
+	case WIFI_DIRECT_DISCOVERY_FOUND:
+		g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FOUND \n");
+		ret = wifi_direct_foreach_discovered_peers(_discovered_peer_cb, (void *)NULL);
+		if (ret != WIFI_DIRECT_ERROR_NONE) {
+			g_print("Error : wifi_direct_foreach_discovered_peers failed : %d\n", ret);
+		}
+		break;
+	case WIFI_DIRECT_DISCOVERY_FINISHED:
+		g_print("discovery_state : WIFI_DIRECT_DISCOVERY_FINISHED \n");
+		break;
+	default:
+		g_print("discovery_state : ERROR\n");
+		break;
 	}
 
 	return;
@@ -711,59 +711,59 @@ void _connection_cb(int error_code, wifi_direct_connection_state_e connection_st
 	g_print("Connected [ error : %d connection state : %d mac_addr:%s ]\n", error_code, connection_state, mac_address);
 
 	switch (connection_state) {
-		case WIFI_DIRECT_CONNECTION_REQ:
-		{
-			g_print("WIFI_DIRECT_CONNECTION_REQ : Connection is requested\n");
-			ret = wifi_direct_accept_connection((char *)mac_address);
-			if (ret != WIFI_DIRECT_ERROR_NONE) {
-			g_print("Error : wifi_direct_accept_connection failed : %d\n", ret);
-			}
-			break;
- 		}
-	    	case WIFI_DIRECT_CONNECTION_WPS_REQ:
-      			g_print("WIFI_DIRECT_CONNECTION_WPS_REQ : WPS is requested\n");
-      			break;
-		case WIFI_DIRECT_CONNECTION_IN_PROGRESS:
-			g_print("WIFI_DIRECT_CONNECTION_IN_PROGRESS : Connection in progress\n");
-			break;
-		case WIFI_DIRECT_CONNECTION_RSP:
-		{
-			bool is_go = FALSE;
-			g_print("WIFI_DIRECT_CONNECTION_RSP : Connected\n");
-			ret = wifi_direct_is_group_owner(&is_go);
-			if (ret != WIFI_DIRECT_ERROR_NONE) {
-				g_print("Error : wifi_direct_is_group_owner failed : %d\n", ret);
-			}
-
-			if (is_go) {
-				g_print("Connected as Group Owner\n");
-			} else {
-				ret = wifi_direct_foreach_connected_peers(_connected_peer_cb, (void *)NULL);
-				if (ret != WIFI_DIRECT_ERROR_NONE) {
-					g_print("Error : wifi_direct_foreach_connected_peers failed : %d\n", ret);
-					return;
-				}
-				g_print("Connected as Group Client\n");
-			}
-			break;
+	case WIFI_DIRECT_CONNECTION_REQ:
+	{
+		g_print("WIFI_DIRECT_CONNECTION_REQ : Connection is requested\n");
+		ret = wifi_direct_accept_connection((char *)mac_address);
+		if (ret != WIFI_DIRECT_ERROR_NONE) {
+		g_print("Error : wifi_direct_accept_connection failed : %d\n", ret);
 		}
-		case WIFI_DIRECT_DISASSOCIATION_IND:
-			g_print("WIFI_DIRECT_DISASSOCIATION_IND : Disconnected by remote Group Client\n");
-			break;
-		case WIFI_DIRECT_DISCONNECTION_RSP:
-			g_print("WIFI_DIRECT_DISCONNECTION_RSP : Disconnected by local device\n");
-			break;
-		case WIFI_DIRECT_DISCONNECTION_IND:
-			g_print("WIFI_DIRECT_DISCONNECTION_IND : Disconnected by remote Group Owner\n");
-			break;
-		case WIFI_DIRECT_GROUP_CREATED:
-			g_print("WIFI_DIRECT_GROUP_CREATED : Group is created\n");
-			break;
-		case WIFI_DIRECT_GROUP_DESTROYED:
-			g_print("WIFI_DIRECT_GROUP_DESTROYED : Group is destroyed\n");
-			break;
-		default:
-			break;
+		break;
+		}
+	case WIFI_DIRECT_CONNECTION_WPS_REQ:
+		g_print("WIFI_DIRECT_CONNECTION_WPS_REQ : WPS is requested\n");
+		break;
+	case WIFI_DIRECT_CONNECTION_IN_PROGRESS:
+		g_print("WIFI_DIRECT_CONNECTION_IN_PROGRESS : Connection in progress\n");
+		break;
+	case WIFI_DIRECT_CONNECTION_RSP:
+	{
+		bool is_go = FALSE;
+		g_print("WIFI_DIRECT_CONNECTION_RSP : Connected\n");
+		ret = wifi_direct_is_group_owner(&is_go);
+		if (ret != WIFI_DIRECT_ERROR_NONE) {
+			g_print("Error : wifi_direct_is_group_owner failed : %d\n", ret);
+		}
+
+		if (is_go) {
+			g_print("Connected as Group Owner\n");
+		} else {
+			ret = wifi_direct_foreach_connected_peers(_connected_peer_cb, (void *)NULL);
+			if (ret != WIFI_DIRECT_ERROR_NONE) {
+				g_print("Error : wifi_direct_foreach_connected_peers failed : %d\n", ret);
+				return;
+			}
+			g_print("Connected as Group Client\n");
+		}
+		break;
+	}
+	case WIFI_DIRECT_DISASSOCIATION_IND:
+		g_print("WIFI_DIRECT_DISASSOCIATION_IND : Disconnected by remote Group Client\n");
+		break;
+	case WIFI_DIRECT_DISCONNECTION_RSP:
+		g_print("WIFI_DIRECT_DISCONNECTION_RSP : Disconnected by local device\n");
+		break;
+	case WIFI_DIRECT_DISCONNECTION_IND:
+		g_print("WIFI_DIRECT_DISCONNECTION_IND : Disconnected by remote Group Owner\n");
+		break;
+	case WIFI_DIRECT_GROUP_CREATED:
+		g_print("WIFI_DIRECT_GROUP_CREATED : Group is created\n");
+		break;
+	case WIFI_DIRECT_GROUP_DESTROYED:
+		g_print("WIFI_DIRECT_GROUP_DESTROYED : Group is destroyed\n");
+		break;
+	default:
+		break;
 	}
 	return;
 }
@@ -1084,7 +1084,7 @@ static int __scmirroring_sink_create(gpointer data)
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
-	if(g_sinktype != -1) {
+	if (g_sinktype != -1) {
 		if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
 			evas_object_show(g_evas);
 			ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_OVERLAY, (void *)g_evas);
@@ -1131,7 +1131,7 @@ gboolean __scmirroring_sink_start(gpointer data)
 		}
 	}
 
-	if(g_sinktype != -1) {
+	if (g_sinktype != -1) {
 
 		if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
 			evas_object_show(g_evas);

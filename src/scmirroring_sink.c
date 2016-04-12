@@ -24,24 +24,24 @@ static scmirroring_error_e __scmirroring_sink_error_convert(const char *func, in
 	const char *errorstr = NULL;
 
 	switch (error) {
-		case MM_ERROR_NONE:
-			ret = SCMIRRORING_ERROR_NONE;
-			errorstr = "ERROR_NONE";
-			break;
+	case MM_ERROR_NONE:
+		ret = SCMIRRORING_ERROR_NONE;
+		errorstr = "ERROR_NONE";
+		break;
 
-		case MM_ERROR_WFD_NOT_INITIALIZED:
-		case MM_ERROR_COMMON_INVALID_ATTRTYPE:
-		case MM_ERROR_COMMON_INVALID_PERMISSION:
-		case MM_ERROR_COMMON_OUT_OF_ARRAY:
-		case MM_ERROR_COMMON_OUT_OF_RANGE:
-		case MM_ERROR_COMMON_ATTR_NOT_EXIST:
-			ret = SCMIRRORING_ERROR_INVALID_PARAMETER;
-			errorstr = "INVALID_PARAMETER";
-			break;
+	case MM_ERROR_WFD_NOT_INITIALIZED:
+	case MM_ERROR_COMMON_INVALID_ATTRTYPE:
+	case MM_ERROR_COMMON_INVALID_PERMISSION:
+	case MM_ERROR_COMMON_OUT_OF_ARRAY:
+	case MM_ERROR_COMMON_OUT_OF_RANGE:
+	case MM_ERROR_COMMON_ATTR_NOT_EXIST:
+		ret = SCMIRRORING_ERROR_INVALID_PARAMETER;
+		errorstr = "INVALID_PARAMETER";
+		break;
 
-		default:
-			ret = SCMIRRORING_ERROR_INVALID_OPERATION;
-			errorstr = "INVALID_OPERATION";
+	default:
+		ret = SCMIRRORING_ERROR_INVALID_OPERATION;
+		errorstr = "INVALID_OPERATION";
 	}
 
 	if (ret != SCMIRRORING_ERROR_NONE)
@@ -57,30 +57,30 @@ static scmirroring_sink_state_e __scmirroring_sink_state_convert(MMWFDSinkStateT
 	scmirroring_sink_state_e state = SCMIRRORING_SINK_STATE_NONE;
 
 	switch (mm_state) {
-		case MM_WFD_SINK_STATE_NONE:
-			state = SCMIRRORING_SINK_STATE_NONE;
-			break;
-		case MM_WFD_SINK_STATE_NULL:
-			state = SCMIRRORING_SINK_STATE_NULL;
-			break;
-		case MM_WFD_SINK_STATE_PREPARED:
-			state = SCMIRRORING_SINK_STATE_PREPARED;
-			break;
-		case MM_WFD_SINK_STATE_CONNECTED:
-			state = SCMIRRORING_SINK_STATE_CONNECTED;
-			break;
-		case MM_WFD_SINK_STATE_PLAYING:
-			state = SCMIRRORING_SINK_STATE_PLAYING;
-			break;
-		case MM_WFD_SINK_STATE_PAUSED:
-			state = SCMIRRORING_SINK_STATE_PAUSED;
-			break;
-		case MM_WFD_SINK_STATE_DISCONNECTED:
-			state = SCMIRRORING_SINK_STATE_DISCONNECTED;
-			break;
-		default:
-			state = SCMIRRORING_SINK_STATE_NONE;
-			break;
+	case MM_WFD_SINK_STATE_NONE:
+		state = SCMIRRORING_SINK_STATE_NONE;
+		break;
+	case MM_WFD_SINK_STATE_NULL:
+		state = SCMIRRORING_SINK_STATE_NULL;
+		break;
+	case MM_WFD_SINK_STATE_PREPARED:
+		state = SCMIRRORING_SINK_STATE_PREPARED;
+		break;
+	case MM_WFD_SINK_STATE_CONNECTED:
+		state = SCMIRRORING_SINK_STATE_CONNECTED;
+		break;
+	case MM_WFD_SINK_STATE_PLAYING:
+		state = SCMIRRORING_SINK_STATE_PLAYING;
+		break;
+	case MM_WFD_SINK_STATE_PAUSED:
+		state = SCMIRRORING_SINK_STATE_PAUSED;
+		break;
+	case MM_WFD_SINK_STATE_DISCONNECTED:
+		state = SCMIRRORING_SINK_STATE_DISCONNECTED;
+		break;
+	default:
+		state = SCMIRRORING_SINK_STATE_NONE;
+		break;
 	}
 
 	return state;
@@ -495,12 +495,12 @@ int scmirroring_sink_get_negotiated_video_codec(scmirroring_sink_h *scmirroring_
 		return ret;
 
 	switch (mm_codec) {
-		case MM_WFD_SINK_VIDEO_CODEC_H264:
-			*codec = SCMIRRORING_VIDEO_CODEC_H264;
-			break;
-		default:
-			*codec = SCMIRRORING_VIDEO_CODEC_NONE;
-			break;
+	case MM_WFD_SINK_VIDEO_CODEC_H264:
+		*codec = SCMIRRORING_VIDEO_CODEC_H264;
+		break;
+	default:
+		*codec = SCMIRRORING_VIDEO_CODEC_NONE;
+		break;
 	}
 
 	scmirroring_debug("codec: %d", *codec);
@@ -582,18 +582,18 @@ int scmirroring_sink_get_negotiated_audio_codec(scmirroring_sink_h *scmirroring_
 		return ret;
 
 	switch (mm_codec) {
-		case MM_WFD_SINK_AUDIO_CODEC_AAC:
-			*codec = SCMIRRORING_AUDIO_CODEC_AAC;
-			break;
-		case MM_WFD_SINK_AUDIO_CODEC_AC3:
-			*codec = SCMIRRORING_AUDIO_CODEC_AC3;
-			break;
-		case MM_WFD_SINK_AUDIO_CODEC_LPCM:
-			*codec = SCMIRRORING_AUDIO_CODEC_LPCM;
-			break;
-		default:
-			*codec = SCMIRRORING_AUDIO_CODEC_NONE;
-			break;
+	case MM_WFD_SINK_AUDIO_CODEC_AAC:
+		*codec = SCMIRRORING_AUDIO_CODEC_AAC;
+		break;
+	case MM_WFD_SINK_AUDIO_CODEC_AC3:
+		*codec = SCMIRRORING_AUDIO_CODEC_AC3;
+		break;
+	case MM_WFD_SINK_AUDIO_CODEC_LPCM:
+		*codec = SCMIRRORING_AUDIO_CODEC_LPCM;
+		break;
+	default:
+		*codec = SCMIRRORING_AUDIO_CODEC_NONE;
+		break;
 	}
 
 	scmirroring_debug("codec: %d", *codec);
