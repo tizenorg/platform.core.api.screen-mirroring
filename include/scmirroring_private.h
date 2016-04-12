@@ -77,7 +77,7 @@ extern "C" {
 	} while (0)
 
 #define scmirroring_retvm_if(expr, val, fmt, arg...) do { \
-		if(expr) { \
+		if (expr) { \
 			LOGE(FONT_COLOR_RED""fmt""FONT_COLOR_RESET, ##arg);     \
 			return (val); \
 		} \
@@ -87,7 +87,7 @@ extern "C" {
 		SECURE_LOGI(FONT_COLOR_GREEN""fmt""FONT_COLOR_RESET, ##arg);     \
 	} while (0)
 
-#define SCMIRRORING_SAFE_FREE(src)      { if(src) {free(src); src = NULL;}}
+#define SCMIRRORING_SAFE_FREE(src)      { if (src) {free(src); src = NULL; } }
 #define STRING_VALID(str)		((str != NULL && strlen(str) > 0) ? TRUE : FALSE)
 
 #define SCMIRRORING_STATE_CMD_START			"START"
@@ -101,14 +101,14 @@ typedef struct {
 	int src_state;
 	void *user_data;
 	scmirroring_state_cb state_cb;
-}scmirroring_state_cb_s;
+} scmirroring_state_cb_s;
 
 typedef struct {
 	int error_code;
 	int sink_state;
 	void *user_data;
 	scmirroring_sink_state_cb state_cb;
-}scmirroring_sink_state_cb_s;
+} scmirroring_sink_state_cb_s;
 
 typedef struct {
 	char *ip;
@@ -141,15 +141,15 @@ typedef struct {
 #define CHECK_FEATURE_SUPPORTED(feature_name)\
 	do {\
 		bool feature_supported = FALSE;\
-		if(!system_info_get_platform_bool(feature_name, &feature_supported)){\
-			if(feature_supported == FALSE){\
+		if (!system_info_get_platform_bool(feature_name, &feature_supported)) {\
+			if (feature_supported == FALSE) {\
 				scmirroring_error("%s feature is disabled", feature_name);\
-				return SCMIRRORING_ERROR_NOT_SUPPORTED;\
-			}\
+				return SCMIRRORING_ERROR_NOT_SUPPORTED; \
+			} \
 		} else {\
 			scmirroring_error("Error - Feature getting from System Info");\
-			return SCMIRRORING_ERROR_UNKNOWN;\
-		}\
+			return SCMIRRORING_ERROR_UNKNOWN; \
+		} \
 	} while (0);
 
 #ifdef __cplusplus

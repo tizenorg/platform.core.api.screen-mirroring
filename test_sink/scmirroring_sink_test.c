@@ -137,13 +137,13 @@ static Evas_Object* _create_win(const char *name)
 	int w = 0;
 	int h = 0;
 
-	g_printf ("[%s][%d] name=%s\n", __func__, __LINE__, name);
+	g_printf("[%s][%d] name=%s\n", __func__, __LINE__, name);
 
 	eo = elm_win_add(NULL, name, ELM_WIN_BASIC);
 	if (eo) {
 		elm_win_title_set(eo, name);
 		elm_win_borderless_set(eo, EINA_TRUE);
-		evas_object_smart_callback_add(eo, "delete,request",_win_del, NULL);
+		evas_object_smart_callback_add(eo, "delete,request", _win_del, NULL);
 		elm_win_autodel_set(eo, EINA_TRUE);
 		elm_win_screen_size_get(eo, NULL, NULL, &w, &h);
 		g_print("window size :%d,%d\n", w, h);
@@ -154,7 +154,7 @@ static Evas_Object* _create_win(const char *name)
 
 static Evas_Object *create_evas_image_object(Evas_Object *eo_parent)
 {
-	if(!eo_parent) {
+	if (!eo_parent) {
 		return NULL;
 	}
 	Evas *evas = evas_object_evas_get(eo_parent);
@@ -1084,7 +1084,7 @@ static int __scmirroring_sink_create(gpointer data)
 		return SCMIRRORING_ERROR_INVALID_OPERATION;
 	}
 
-	if(g_sinktype != -1) {
+	if (g_sinktype != -1) {
 		if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
 			evas_object_show(g_evas);
 			ret = scmirroring_sink_set_display(g_scmirroring, SCMIRRORING_DISPLAY_TYPE_OVERLAY, (void *)g_evas);
@@ -1131,7 +1131,7 @@ gboolean __scmirroring_sink_start(gpointer data)
 		}
 	}
 
-	if(g_sinktype != -1) {
+	if (g_sinktype != -1) {
 
 		if (g_sinktype == SCMIRRORING_DISPLAY_TYPE_OVERLAY) {
 			evas_object_show(g_evas);
