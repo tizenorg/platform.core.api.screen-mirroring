@@ -507,7 +507,7 @@ __client_closed(GstRTSPClient *client, gpointer user_data)
 
 	scmirroring_debug("client %p: connection closed", client);
 
-	klass->send_response(server_obj,"OK:STOP");
+	klass->send_response(server_obj, "OK:STOP");
 
 	return;
 }
