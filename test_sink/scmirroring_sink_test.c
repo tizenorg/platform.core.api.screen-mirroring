@@ -43,8 +43,8 @@ static void _win_del(void *data, Evas_Object *obj, void *event);
 static gboolean _scmirroring_start_jobs(gpointer data);
 
 struct appcore_ops ops = {
-		.create = app_create,
-		.terminate = app_terminate,
+	.create = app_create,
+	.terminate = app_terminate,
 };
 static Evas_Object* g_evas;
 static Evas_Object* g_eo = NULL;
@@ -176,7 +176,7 @@ static int app_create(void *data)
 	/* create window */
 	win = _create_win(PACKAGE);
 	if (win == NULL)
-			return -1;
+		return -1;
 	g_evas = win;
 	create_render_rect_and_bg(g_evas);
 
@@ -544,7 +544,7 @@ static void __displaymenu(void)
 	g_print("=====================================================================\n");
 #ifndef TEST_WITH_WIFI_DIRECT
 	g_print("a : a ip port(ex. a 192.168.49.1 2022)\n");
-	g_print("s : start \n");
+	g_print("s : start\n");
 #else
 	g_print("b : Connecting and Starting sink with mac address which you wanna connect src device. (ex. b f8:d0:bd:7f:e9:7c)\n");
 #endif
