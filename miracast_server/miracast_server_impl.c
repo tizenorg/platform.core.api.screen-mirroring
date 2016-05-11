@@ -733,6 +733,24 @@ failed:
 	return SCMIRRORING_ERROR_INVALID_OPERATION;
 }
 
+static int __miracast_server_set_direct_streaming(MiracastServer *server_obj, gint direct_streaming,
+		gchar *filesrc)
+{
+	GstRTSPWFDServer *server = NULL;
+	server = (GstRTSPWFDServer *)server_obj->server;
+	if (server == NULL) {
+		scmirroring_error("No server object");
+		goto failed;
+	}
+
+	/* TODO: Add call from gst-rtsp-server */
+
+	return SCMIRRORING_ERROR_NONE;
+failed:
+	scmirroring_error("Failed to start direct streaming");
+	return SCMIRRORING_ERROR_INVALID_OPERATION;
+}
+
 void __miracast_server_interpret(MiracastServer *server, gchar *buf)
 {
 	int ret = SCMIRRORING_ERROR_NONE;
@@ -811,6 +829,27 @@ void __miracast_server_interpret(MiracastServer *server, gchar *buf)
 		g_strfreev(multisink_info);
 
 		klass->send_response(server, "OK:SET");
+	} else if (g_strrstr(buf, "SET STREAMING")) {
+		gchar **streaming_info = NULL;
+
+		streaming_info = g_strsplit(buf, " ", 0);
+		if (streaming_info == NULL || streaming_info[2] == NULL || streaming_info[3] == NULL) {
+			klass->send_response(server, "FAIL:SET");
+			g_strfreev(streaming_info);
+			return;
+		}
+
+		scmirroring_debug("Streming command: %d, Filesrc: %s", atoi(streaming_info[2]), streaming_info[3]);
+
+		ret = __miracast_server_set_direct_streaming(server, atoi(streaming_info[2]), streaming_info[3]);
+
+		if (ret == SCMIRRORING_ERROR_NONE)
+			klass->send_response(server, "OK:SET");
+		else
+			klass->send_response(server, "FAIL:SET");
+
+		g_strfreev(streaming_info);
+
 	} else if (g_strrstr(buf, SCMIRRORING_STATE_CMD_PAUSE)) {
 		gst_rtsp_wfd_server_trigger_request(GST_RTSP_SERVER(server->server), WFD_TRIGGER_PAUSE);
 		klass->send_response(server, "OK:PAUSE");

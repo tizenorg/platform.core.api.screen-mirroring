@@ -125,6 +125,14 @@ typedef enum {
 } scmirroring_video_codec_e;
 
 /**
+ * @brief Enumeration for screen mirroring direct streaming mode.
+ * @since_tizen 2.4
+ */
+typedef enum {
+	SCMIRRORING_DIRECT_STREAMING_DISABLED = 0,    /**< Disable screen mirroring direct streaming mode */
+	SCMIRRORING_DIRECT_STREAMING_ENABLED          /**< Enable direct streaming for files */
+} scmirroring_direct_streaming_e;
+/**
  * @brief Called when each status is changed.
  * @since_tizen 2.4
  *

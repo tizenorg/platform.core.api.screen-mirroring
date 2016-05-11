@@ -366,6 +366,28 @@ static int __scmirroring_src_send_set_multisink(scmirroring_src_h scmirroring)
 	return ret;
 }
 
+static int __scmirroring_src_send_set_direct_streaming(scmirroring_src_h scmirroring)
+{
+	/* Set resolution to miracast server */
+	char *cmd = NULL;
+	int ret = SCMIRRORING_ERROR_NONE;
+	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring;
+
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+
+	cmd = g_strdup_printf("SET STREAMING %d %s", _scmirroring->direct_streaming, _scmirroring->filesrc);
+	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, cmd);
+	if (ret != SCMIRRORING_ERROR_NONE) {
+		SCMIRRORING_SAFE_FREE(cmd);
+		scmirroring_error("Failed to enable direct streaming [%d]", ret);
+		return SCMIRRORING_ERROR_INVALID_OPERATION;
+	}
+
+	SCMIRRORING_SAFE_FREE(cmd);
+
+	return ret;
+}
+
 int scmirroring_src_create(scmirroring_src_h *scmirroring)
 {
 	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
@@ -781,6 +803,33 @@ int scmirroring_src_resume(scmirroring_src_h scmirroring)
 	ret = __scmirroring_src_send_cmd_to_server(_scmirroring, SCMIRRORING_STATE_CMD_RESUME);
 	if (ret != SCMIRRORING_ERROR_NONE)
 		scmirroring_error("Failed to resume [%d]", ret);
+
+	scmirroring_debug_fleave();
+
+	return ret;
+}
+
+int scmirroring_src_set_direct_streaming(scmirroring_src_h scmirroring_src,
+		scmirroring_direct_streaming_e enable, const char* uri_srcname)
+{
+	CHECK_FEATURE_SUPPORTED(WIFIDIRECT_DISPLAY_FEATURE);
+
+	int ret = SCMIRRORING_ERROR_NONE;
+	scmirroring_src_s *_scmirroring = (scmirroring_src_s *)scmirroring_src;
+
+	scmirroring_debug_fenter();
+
+	scmirroring_retvm_if(_scmirroring == NULL, SCMIRRORING_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	scmirroring_retvm_if(!STRING_VALID(uri_srcname), SCMIRRORING_ERROR_INVALID_PARAMETER, "INVALID URI_SRCNAME");
+	_scmirroring->direct_streaming = enable;
+	_scmirroring->filesrc = strdup(uri_srcname);
+
+	if ((_scmirroring->filesrc == NULL)) {
+		scmirroring_error("OUT_OF_MEMORY");
+		return SCMIRRORING_ERROR_OUT_OF_MEMORY;
+	}
+
+	ret = __scmirroring_src_send_set_direct_streaming(_scmirroring);
 
 	scmirroring_debug_fleave();
 
