@@ -126,6 +126,8 @@ typedef struct {
 	int current_state;
 	scmirroring_state_cb_s *scmirroring_state_cb;
 	scmirroring_multisink_e multisink;
+	scmirroring_direct_streaming_e direct_streaming;
+	char *filesrc;
 } scmirroring_src_s;
 
 typedef struct {

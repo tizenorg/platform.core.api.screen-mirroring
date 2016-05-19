@@ -72,6 +72,7 @@ static void __displaymenu(void)
 	g_print("S : Start  \n");
 	g_print("P : Pause \n");
 	g_print("R : Resume \n");
+	g_print("s : Direct Streaming (ex. d 1 /tmp/file.mp4 (0:disable, 1:enable))\n");
 	g_print("T : sTop\n");
 	g_print("D : Destroy\n");
 
@@ -139,6 +140,9 @@ static void __interpret(char *cmd)
 	} else if (strncmp(cmd, "R", 1) == 0) {
 		g_print("Resume\n");
 		ret = scmirroring_src_resume(g_scmirroring);
+	} else if (strncmp(cmd, "s", 1) == 0) {
+		ret = scmirroring_src_set_direct_streaming(g_scmirroring, atoi(value[1]), value[2]);
+		g_print("Direct streaming state - [%d] Source - [%s]\n", atoi(value[1]), value[2]);
 	} else if (strncmp(cmd, "T", 1) == 0) {
 		g_print("Stop\n");
 		ret = scmirroring_src_stop(g_scmirroring);

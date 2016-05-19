@@ -292,6 +292,32 @@ int scmirroring_src_pause(scmirroring_src_h scmirroring_src);
 int scmirroring_src_resume(scmirroring_src_h scmirroring_src);
 
 /**
+ * @brief Enables streaming without reencoding for screen mirroring.
+ * @details This function enables streaming without reencoding for screen mirroring, which means files that encoded with supported formats will be streamed without decoding and reencoding.
+ *
+ * @param[in] scmirroring_src The handle to screen mirroring source
+ * @param[in] enable Ability to stream file directly
+ * @param[in] uri_srcname File name to stream directly
+ *
+ * @return @c 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #SCMIRRORING_ERROR_NONE Successful
+ * @retval #SCMIRRORING_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #SCMIRRORING_ERROR_OUT_OF_MEMORY Not enough memory to allocate new object
+ * @retval #SCMIRRORING_ERROR_INVALID_OPERATION External function not implemented
+ *
+ * @pre The screen mirroring state should be SCMIRRORING_STATE_PLAYING
+ *
+ * @see scmirroring_src_create()
+ * @see scmirroring_src_set_state_changed_cb()
+ * @see scmirroring_src_prepare()
+ * @see scmirroring_src_connect()
+ * @see scmirroring_src_start()
+ */
+int scmirroring_src_set_direct_streaming(scmirroring_src_h scmirroring_src, scmirroring_direct_streaming_e enable, const char *uri_srcname);
+
+/**
  * @brief Stops screen mirroring, asynchronously.
  * @details This function stops screen mirroring, which means it sends RTSP TEARDOWN trigger message to sink.
  *
