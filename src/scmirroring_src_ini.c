@@ -36,7 +36,7 @@ do { \
 	if (str) { \
 		length = strlen(str); \
 		if ((length > 1) && (length < SCMIRRORING_SRC_INI_MAX_STRLEN)) \
-			strncpy(x_item, str, length + 1); \
+			strncpy(x_item, str, SCMIRRORING_SRC_INI_MAX_STRLEN - 1); \
 		else \
 			strncpy(x_item, x_default, SCMIRRORING_SRC_INI_MAX_STRLEN - 1); \
 	} \
