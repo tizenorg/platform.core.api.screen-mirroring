@@ -51,7 +51,6 @@ scmirroring_src_ini_load(void)
 {
 	static gboolean loaded = FALSE;
 	dictionary *dict = NULL;
-	gint idx = 0;
 
 	if (loaded)
 		return ERROR_NONE;
@@ -59,7 +58,6 @@ scmirroring_src_ini_load(void)
 	dict = NULL;
 
 	/* disabling ini parsing for launching */
-#if 1 /*debianize */
 	/* get scmirroring ini status because system will be crashed
 	* if ini file is corrupted.
 	*/
@@ -68,24 +66,6 @@ scmirroring_src_ini_load(void)
 
 	/* first, try to load existing ini file */
 	dict = iniparser_load(SCMIRRORING_SRC_INI_DEFAULT_PATH);
-
-	/* if no file exists. create one with set of default values */
-	if (!dict) {
-#if 0
-		scmirroring_debug("No inifile found. scmirroring will create default inifile.\n");
-		if (FALSE == __generate_default_ini()) {
-			scmirroring_debug("Creating default inifile failed. Player will use default values.\n");
-		} else {
-			/* load default ini */
-			dict = iniparser_load(SCMIRRORING_SRC_INI_DEFAULT_PATH);
-		}
-#else
-		scmirroring_debug("No inifile found. \n");
-
-		return ERROR_FILE_NOT_FOUND;
-#endif
-	}
-#endif
 
 	/* get ini values */
 	memset(&g_scmirroring_src_ini, 0, sizeof(scmirroring_src_ini_t));
@@ -99,19 +79,19 @@ scmirroring_src_ini_load(void)
 		g_scmirroring_src_ini.videosink_element = iniparser_getint(dict, "general:videosink element", DEFAULT_VIDEOSINK);
 		g_scmirroring_src_ini.disable_segtrap = iniparser_getboolean(dict, "general:disable segtrap", DEFAULT_DISABLE_SEGTRAP);
 		g_scmirroring_src_ini.skip_rescan = iniparser_getboolean(dict, "general:skip rescan", DEFAULT_SKIP_RESCAN);
-		g_scmirroring_src_ini.videosink_element = iniparser_getint(dict, "general:videosink element", DEFAULT_VIDEOSINK);
 		g_scmirroring_src_ini.mtu_size = iniparser_getint(dict, "general:mtu_size value", DEFAULT_MTU_SIZE);
 		g_scmirroring_src_ini.generate_dot = iniparser_getboolean(dict, "general:generate dot", DEFAULT_GENERATE_DOT);
 		g_scmirroring_src_ini.provide_clock = iniparser_getboolean(dict, "general:provide clock", DEFAULT_PROVIDE_CLOCK);
+		
 		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_encoder_aac, "general:audio encoder aac name", DEFAULT_AUDIOENC_AAC);
 		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_encoder_ac3, "general:audio encoder ac3 name", DEFAULT_AUDIOENC_AC3);
 		g_scmirroring_src_ini.audio_codec = iniparser_getint(dict, "general:audio codec", DEFAULT_AUDIO_CODEC);
 #ifndef ENABLE_QC_SPECIFIC
-		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_device, "general:exynosaudio device name", DEFAULT_AUDIO_DEVICE_NAME);
-		g_scmirroring_src_ini.audio_buffer_time = iniparser_getint(dict, "general:exynosaudio buffer_time", DEFAULT_AUDIO_BUFFER_TIME);
+		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_device, "general:exynosaudio device name", DEFAULT_AUDIO_EXYNOS_DEVICE_NAME);
+		g_scmirroring_src_ini.audio_buffer_time = iniparser_getint(dict, "general:exynosaudio buffer_time", DEFAULT_AUDIO_EXYNOS_BUFFER_TIME);
 #else
-		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_device, "general:qcmsmaudio device name", DEFAULT_AUDIO_DEVICE_NAME);
-		g_scmirroring_src_ini.audio_buffer_time = iniparser_getint(dict, "general:qcmsmaudio buffer_time", DEFAULT_AUDIO_BUFFER_TIME);
+		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_device, "general:qcmsmaudio device name", DEFAULT_AUDIO_QC_DEVICE_NAME);
+		g_scmirroring_src_ini.audio_buffer_time = iniparser_getint(dict, "general:qcmsmaudio buffer_time", DEFAULT_AUDIO_QC_BUFFER_TIME);
 #endif
 		SCMIRRORING_INI_GET_STRING(g_scmirroring_src_ini.name_of_audio_device_property, "general:audio properties name", DEFAULT_AUDIO_DEVICE_PROPERTY_NAME);
 		g_scmirroring_src_ini.audio_latency_time = iniparser_getint(dict, "general:audio latency_time", DEFAULT_AUDIO_LATENCY_TIME);
@@ -119,27 +99,27 @@ scmirroring_src_ini_load(void)
 		SCMIRRORING_INI_GET_STRING(temp, "general:video resolution_supported", "");
 		if (strlen(temp) > 0) g_scmirroring_src_ini.video_reso_supported = strtoull(temp, NULL, 16);
 		else g_scmirroring_src_ini.video_reso_supported = DEFAULT_VIDEO_RESOLUTION_SUPPORTED;
-		g_scmirroring_src_ini.decide_udp_bitrate[0] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_1", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[1] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_1", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[2] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_1", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[3] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_2", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[4] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_2", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[5] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_2", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[6] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_3", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[7] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_3", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[8] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_3", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[9] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_4", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[10] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_4", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[11] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_4", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[12] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_5", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[13] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_5", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[14] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_5", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[15] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_6", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[16] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_6", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[17] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_6", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[18] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_7", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[19] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_7", DEFAULT_VIDEO_BITRATE);
-		g_scmirroring_src_ini.decide_udp_bitrate[20] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_7", DEFAULT_VIDEO_BITRATE);
+		g_scmirroring_src_ini.decide_udp_bitrate[0] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_1", DEFAULT_VIDEO_BITRATE_INIT_1);
+		g_scmirroring_src_ini.decide_udp_bitrate[1] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_1", DEFAULT_VIDEO_BITRATE_MIN_1);
+		g_scmirroring_src_ini.decide_udp_bitrate[2] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_1", DEFAULT_VIDEO_BITRATE_MAX_1);
+		g_scmirroring_src_ini.decide_udp_bitrate[3] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_2", DEFAULT_VIDEO_BITRATE_INIT_2);
+		g_scmirroring_src_ini.decide_udp_bitrate[4] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_2", DEFAULT_VIDEO_BITRATE_MIN_2);
+		g_scmirroring_src_ini.decide_udp_bitrate[5] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_2", DEFAULT_VIDEO_BITRATE_MAX_2);
+		g_scmirroring_src_ini.decide_udp_bitrate[6] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_3", DEFAULT_VIDEO_BITRATE_INIT_3);
+		g_scmirroring_src_ini.decide_udp_bitrate[7] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_3", DEFAULT_VIDEO_BITRATE_MIN_3);
+		g_scmirroring_src_ini.decide_udp_bitrate[8] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_3", DEFAULT_VIDEO_BITRATE_MAX_3);
+		g_scmirroring_src_ini.decide_udp_bitrate[9] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_4", DEFAULT_VIDEO_BITRATE_INIT_4);
+		g_scmirroring_src_ini.decide_udp_bitrate[10] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_4", DEFAULT_VIDEO_BITRATE_MIN_4);
+		g_scmirroring_src_ini.decide_udp_bitrate[11] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_4", DEFAULT_VIDEO_BITRATE_MAX_4);
+		g_scmirroring_src_ini.decide_udp_bitrate[12] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_5", DEFAULT_VIDEO_BITRATE_INIT_5);
+		g_scmirroring_src_ini.decide_udp_bitrate[13] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_5", DEFAULT_VIDEO_BITRATE_MIN_5);
+		g_scmirroring_src_ini.decide_udp_bitrate[14] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_5", DEFAULT_VIDEO_BITRATE_MAX_5);
+		g_scmirroring_src_ini.decide_udp_bitrate[15] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_6", DEFAULT_VIDEO_BITRATE_INIT_6);
+		g_scmirroring_src_ini.decide_udp_bitrate[16] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_6", DEFAULT_VIDEO_BITRATE_MIN_6);
+		g_scmirroring_src_ini.decide_udp_bitrate[17] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_6", DEFAULT_VIDEO_BITRATE_MAX_6);
+		g_scmirroring_src_ini.decide_udp_bitrate[18] = iniparser_getint(dict, "general:INIT_UDP_resolution_set_7", DEFAULT_VIDEO_BITRATE_INIT_7);
+		g_scmirroring_src_ini.decide_udp_bitrate[19] = iniparser_getint(dict, "general:MIN_UDP_resolution_set_7", DEFAULT_VIDEO_BITRATE_MIN_7);
+		g_scmirroring_src_ini.decide_udp_bitrate[20] = iniparser_getint(dict, "general:MAX_UDP_resolution_set_7", DEFAULT_VIDEO_BITRATE_MAX_7);
 		g_scmirroring_src_ini.video_native_resolution = iniparser_getint(dict, "general:video native_resolution", DEFAULT_NATIVE_VIDEO_RESOLUTION);
 		g_scmirroring_src_ini.hdcp_enabled = iniparser_getint(dict, "general:encryption HDCP_enabled", DEFAULT_HDCP_ENABLED);
 		g_scmirroring_src_ini.uibc_gen_capability = iniparser_getint(dict, "general:uibc UIBC_GEN_capability", DEFAULT_UIBC_GEN_CAPABILITY);
@@ -158,29 +138,55 @@ scmirroring_src_ini_load(void)
 
 		/* general */
 		g_scmirroring_src_ini.videosrc_element = DEFAULT_VIDEOSRC;
+		strncpy(g_scmirroring_src_ini.name_of_video_encoder, DEFAULT_VIDEOENC, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
 		g_scmirroring_src_ini.session_mode = DEFAULT_SESSION_MODE;
+		g_scmirroring_src_ini.videosink_element = DEFAULT_VIDEOSINK;
 		g_scmirroring_src_ini.disable_segtrap = DEFAULT_DISABLE_SEGTRAP;
 		g_scmirroring_src_ini.skip_rescan = DEFAULT_SKIP_RESCAN;
-		g_scmirroring_src_ini.videosink_element = DEFAULT_VIDEOSINK;
 		g_scmirroring_src_ini.mtu_size = DEFAULT_MTU_SIZE;
 		g_scmirroring_src_ini.generate_dot = DEFAULT_GENERATE_DOT;
 		g_scmirroring_src_ini.provide_clock = DEFAULT_PROVIDE_CLOCK;
 
-		strncpy(g_scmirroring_src_ini.name_of_audio_device, DEFAULT_AUDIO_DEVICE_NAME, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
+		strncpy(g_scmirroring_src_ini.name_of_audio_encoder_aac, DEFAULT_AUDIOENC_AAC, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
+		strncpy(g_scmirroring_src_ini.name_of_audio_encoder_ac3, DEFAULT_AUDIOENC_AC3, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
+		g_scmirroring_src_ini.audio_codec = DEFAULT_AUDIO_CODEC;
+#ifndef ENABLE_QC_SPECIFIC
+		strncpy(g_scmirroring_src_ini.name_of_audio_device, DEFAULT_AUDIO_EXYNOS_DEVICE_NAME, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
+		g_scmirroring_src_ini.audio_buffer_time = DEFAULT_AUDIO_EXYNOS_BUFFER_TIME;
+#else
+		strncpy(g_scmirroring_src_ini.name_of_audio_device, DEFAULT_AUDIO_QC_DEVICE_NAME, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
+		g_scmirroring_src_ini.audio_buffer_time = DEFAULT_AUDIO_QC_BUFFER_TIME;
+#endif
 		strncpy(g_scmirroring_src_ini.name_of_audio_device_property, DEFAULT_AUDIO_DEVICE_PROPERTY_NAME, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
 		g_scmirroring_src_ini.audio_latency_time = DEFAULT_AUDIO_LATENCY_TIME;
-		g_scmirroring_src_ini.audio_buffer_time = DEFAULT_AUDIO_BUFFER_TIME;
 		g_scmirroring_src_ini.audio_do_timestamp = DEFAULT_AUDIO_DO_TIMESTAMP;
 		g_scmirroring_src_ini.video_reso_supported = DEFAULT_VIDEO_RESOLUTION_SUPPORTED;
-		for (idx = 0; idx < 21; ++idx) {
-			g_scmirroring_src_ini.decide_udp_bitrate[idx] = DEFAULT_VIDEO_BITRATE;
-		}
+		g_scmirroring_src_ini.decide_udp_bitrate[0] = DEFAULT_VIDEO_BITRATE_INIT_1;
+		g_scmirroring_src_ini.decide_udp_bitrate[1] = DEFAULT_VIDEO_BITRATE_MIN_1;
+		g_scmirroring_src_ini.decide_udp_bitrate[2] = DEFAULT_VIDEO_BITRATE_MAX_1;
+		g_scmirroring_src_ini.decide_udp_bitrate[3] = DEFAULT_VIDEO_BITRATE_INIT_2;
+		g_scmirroring_src_ini.decide_udp_bitrate[4] = DEFAULT_VIDEO_BITRATE_MIN_2;
+		g_scmirroring_src_ini.decide_udp_bitrate[5] = DEFAULT_VIDEO_BITRATE_MAX_2;
+		g_scmirroring_src_ini.decide_udp_bitrate[6] = DEFAULT_VIDEO_BITRATE_INIT_3;
+		g_scmirroring_src_ini.decide_udp_bitrate[7] = DEFAULT_VIDEO_BITRATE_MIN_3;
+		g_scmirroring_src_ini.decide_udp_bitrate[8] = DEFAULT_VIDEO_BITRATE_MAX_3;
+		g_scmirroring_src_ini.decide_udp_bitrate[9] = DEFAULT_VIDEO_BITRATE_INIT_4;
+		g_scmirroring_src_ini.decide_udp_bitrate[10] = DEFAULT_VIDEO_BITRATE_MIN_4; 
+		g_scmirroring_src_ini.decide_udp_bitrate[11] = DEFAULT_VIDEO_BITRATE_MAX_4; 
+		g_scmirroring_src_ini.decide_udp_bitrate[12] = DEFAULT_VIDEO_BITRATE_INIT_5; 
+		g_scmirroring_src_ini.decide_udp_bitrate[13] = DEFAULT_VIDEO_BITRATE_MIN_5; 
+		g_scmirroring_src_ini.decide_udp_bitrate[14] = DEFAULT_VIDEO_BITRATE_MAX_5; 
+		g_scmirroring_src_ini.decide_udp_bitrate[15] = DEFAULT_VIDEO_BITRATE_INIT_6; 
+		g_scmirroring_src_ini.decide_udp_bitrate[16] = DEFAULT_VIDEO_BITRATE_MIN_6; 
+		g_scmirroring_src_ini.decide_udp_bitrate[17] = DEFAULT_VIDEO_BITRATE_MAX_6; 
+		g_scmirroring_src_ini.decide_udp_bitrate[18] = DEFAULT_VIDEO_BITRATE_INIT_7; 
+		g_scmirroring_src_ini.decide_udp_bitrate[19] = DEFAULT_VIDEO_BITRATE_MIN_7; 
+		g_scmirroring_src_ini.decide_udp_bitrate[20] = DEFAULT_VIDEO_BITRATE_MAX_7; 
 		g_scmirroring_src_ini.video_native_resolution = DEFAULT_NATIVE_VIDEO_RESOLUTION;
 		g_scmirroring_src_ini.hdcp_enabled = DEFAULT_HDCP_ENABLED;
 		g_scmirroring_src_ini.uibc_gen_capability = DEFAULT_UIBC_GEN_CAPABILITY;
 
 		strncpy(g_scmirroring_src_ini.name_of_video_converter, DEFAULT_VIDEO_CONVERTER, SCMIRRORING_SRC_INI_MAX_STRLEN - 1);
-
 
 		strncpy(g_scmirroring_src_ini.gst_param[0], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
 		strncpy(g_scmirroring_src_ini.gst_param[1], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
@@ -188,11 +194,11 @@ scmirroring_src_ini_load(void)
 		strncpy(g_scmirroring_src_ini.gst_param[3], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
 		strncpy(g_scmirroring_src_ini.gst_param[4], DEFAULT_GST_PARAM, SCMIRRORING_SRC_INI_MAX_PARAM_STRLEN - 1);
 		g_scmirroring_src_ini.dump_ts = DEFAULT_DUMP_TS;
-
 	}
 
 	/* free dict as we got our own structure */
-	iniparser_freedict(dict);
+	if(dict)
+		iniparser_freedict(dict);
 
 	loaded = TRUE;
 
